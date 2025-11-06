@@ -234,7 +234,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <Metrics wpm={netWpm} accuracy={accPct} timeLeft={timeLeft} />
-            <section>
+            <section className="space-y-4">
               <TypingArea
                 text={text}
                 typed={typed}
@@ -242,12 +242,12 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                 onType={handleType}
               />
               {status === 'pending' && (
-                <p className="mt-3 text-slate-400 text-sm">Start typing to begin the test.</p>
+                <p className="text-slate-400 text-sm">Start typing to begin the test.</p>
               )}
+              <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch {} }} />
             </section>
           </div>
           <div className="space-y-4">
-            <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch {} }} />
             {mode === 'chars' && (
               <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4 w-full">
                 <label className="block text-xs uppercase tracking-wide text-slate-400 mb-1">Character group</label>

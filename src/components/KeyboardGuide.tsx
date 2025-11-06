@@ -102,9 +102,11 @@
    const order: Finger[] = side === 'left' ? ['lp','lr','lm','li','thumb'] : ['thumb','ri','rm','rr','rp'];
    return (
      <div className="bg-slate-950/50 border border-slate-800 rounded-lg p-3 flex items-end justify-center gap-1">
-       {order.map((f) => (
-         <div key={f} className={`h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border ${fingerBg[f]} ${active===f ? 'ring-2 ring-sky-400' : ''}`}></div>
-       ))}
+      {order.map((f) => {
+        const base = `h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border`;
+        const cls = active===f ? 'bg-sky-500/60 border-sky-400 ring-2 ring-sky-400' : fingerBg[f];
+        return <div key={f} className={`${base} ${cls}`}></div>;
+      })}
      </div>
    );
  }

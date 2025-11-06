@@ -106,11 +106,11 @@
 
  - Keyboard and Hand Display with Toggle
    - Visual on‑screen QWERTY keyboard with finger color zones; current key and finger highlighted; toggle to show/hide.
-   - Status: Completed
+  - Status: Completed (positioned below input; hand highlight uses blue for next finger)
 
  - GUI Layout Review and Reorganization
-   - Two‑pane layout on desktop: left (Metrics + Typing area), right (Keyboard guide + contextual panel for Char mode or Lessons); stacked on mobile.
-   - Status: Completed
+  - Two‑pane layout on desktop: left (Metrics + Typing area + Keyboard guide below input), right (contextual panel for Char mode or Lessons); stacked on mobile.
+  - Status: Completed
 
  ## 5) Notes on Deviations
 

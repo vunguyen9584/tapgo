@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import TypingArea from './components/TypingArea';
 import StatsBar from './components/StatsBar';
 import Results from './components/Results';
@@ -241,6 +242,12 @@ export default function App() {
       ? t('customCharacters')
       : t('typingTestTitle');
 
+  const appName = 'Keyboard Master';
+  const pageTitle = `${title} | ${appName}`;
+  const baseDescription = 'Luyện gõ phím online với bài tập đa dạng, theo dõi WPM, độ chính xác và biểu đồ theo thời gian. Miễn phí, không cần đăng ký.';
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : origin || '';
+
   const rightLogin = (
     <div className="flex items-center gap-2">
       <select value={locale} onChange={(e) => setLocale(e.target.value as any)} className="px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
@@ -264,6 +271,21 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#222222] flex flex-col items-center px-4 py-8">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={baseDescription} />
+        <link rel="canonical" href={currentUrl} />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={baseDescription} />
+        <meta property="og:image" content={`${origin}/favicon.svg`} />
+        <meta property="og:url" content={currentUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={baseDescription} />
+        <meta name="twitter:image" content={`${origin}/favicon.svg`} />
+      </Helmet>
       <div className="w-full max-w-4xl space-y-4">
         <TitleBar title={title} right={rightLogin} />
         <StatsBar

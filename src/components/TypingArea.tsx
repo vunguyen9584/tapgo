@@ -35,6 +35,7 @@ export default function TypingArea({ text, typed, status, onType, actions }: Pro
 
   // Compute next word highlight boundaries
   const caret = typed.length;
+  const nextIsSpace = caret < text.length && /\s/.test(text[caret] ?? '');
   let start = caret;
   while (start < text.length && /\s/.test(text[start] ?? '')) start++;
   let end = start;
@@ -49,7 +50,7 @@ export default function TypingArea({ text, typed, status, onType, actions }: Pro
             let cls = 'text-[#222222]';
             if (i < caret) {
               cls = typedCh === ch ? 'text-[#666666]' : 'text-[#DC3545]';
-            } else if (i >= start && i < end) {
+            } else if ((i === caret && nextIsSpace) || (i >= start && i < end)) {
               cls = 'text-[#0000FF] underline';
             }
             const display = ch === ' ' ? '␣' : ch;

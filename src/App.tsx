@@ -5,6 +5,8 @@ import StatsBar from './components/StatsBar';
 import Results from './components/Results';
 import KeyboardGuide from './components/KeyboardGuide';
 import TitleBar from './components/TitleBar';
+import SettingsModal from './components/SettingsModal';
+import { ToastContainer, type ToastItem } from './components/Toast';
 import { computeCorrectIncorrect, generateCharPracticeText, generateWordPracticeText, generateTypingTestText } from './utils/text';
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
@@ -37,6 +39,11 @@ export default function App() {
   const [showGuide, setShowGuide] = useState<boolean>(() => {
     try { const v = localStorage.getItem('km_showGuide'); return v ? JSON.parse(v) : true; } catch { return true; }
   });
+  const [minExamWpm, setMinExamWpm] = useState<number>(() => {
+    try { const v = localStorage.getItem('km_minExamWpm'); return v ? Number(v) : 30; } catch { return 30; }
+  });
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const startTimeRef = useRef<number | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -136,7 +143,7 @@ export default function App() {
       const lesson: Lesson | undefined = LESSONS.find(l => l.id === selectedLessonId);
       if (lesson) {
         const isExam = lessonVariant === 'exam';
-        const passed = isExam ? (Math.round(finalWpm) >= 30) : false;
+        const passed = isExam ? (Math.round(finalWpm) >= minExamWpm) : false;
         setLessonResult(isExam ? { label: lesson.label, passed } : {});
         if (isExam) {
           setLessonsProgress(prev => {
@@ -262,7 +269,7 @@ export default function App() {
       </select>
       {firebaseEnabled ? (
         user ? (
-          <UserMenu user={user} onLogout={logout} />
+          <UserMenu user={user} onLogout={logout} onOpenSettings={() => setSettingsOpen(true)} />
         ) : (
           <button onClick={() => loginWithGoogle()} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100">Login</button>
         )
@@ -271,6 +278,43 @@ export default function App() {
       )}
     </div>
   );
+
+  function pushToast(message: string) {
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((prev) => [...prev, { id, message }]);
+  }
+
+  function dismissToast(id: string) {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  function handleSaveSettings(nextWpm: number) {
+    setMinExamWpm(nextWpm);
+    try { localStorage.setItem('km_minExamWpm', String(nextWpm)); } catch {}
+  }
+
+  function goToNextLesson() {
+    if (!selectedLessonId) return;
+    const idx = LESSONS.findIndex(l => l.id === selectedLessonId);
+    const next = idx >= 0 ? LESSONS[idx + 1] : undefined;
+    if (!next) return;
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+    setMode('lesson');
+    setSelectedLessonId(next.id);
+    setLessonVariant('new');
+    setText(generateCharPracticeText(next.chars));
+    setTyped('');
+    startTimeRef.current = null;
+    setStatus('pending');
+    setFinishReason('none');
+    setTimeLeft(duration);
+    setWpm(0);
+    setAccuracy(100);
+    setWpmHistory([]);
+    setCorrectChars(0);
+    setIncorrectChars(0);
+    setLessonResult({});
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#222222] flex flex-col items-center px-4 py-8">
@@ -367,6 +411,10 @@ export default function App() {
                               setText(generateCharPracticeText(cumulativeChars(l.id)));
                               setTyped('');
                               setLessonResult({});
+                              const msg = locale === 'vi'
+                                ? `Yêu cầu đậu: ≥${minExamWpm} WPM. Bạn có thể thay đổi trong "Thiết lập".`
+                                : `Passing threshold: ≥${minExamWpm} WPM. You can change it in "Settings".`;
+                              pushToast(msg);
                             }}
                             className={`text-left px-2 py-1 rounded-md border text-xs ${isSelected && lessonVariant === 'exam' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                               } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
@@ -454,7 +502,8 @@ export default function App() {
 
       <Results
         open={status === 'finished' && finishReason === 'completed'}
-        onClose={restartNewText}
+        onRetry={restartNewText}
+        onNextLesson={mode === 'lesson' && lessonVariant === 'exam' && selectedLessonId && LESSONS.findIndex(l => l.id === selectedLessonId) < LESSONS.length - 1 ? goToNextLesson : undefined}
         wpm={Math.max(0, Math.round(wpm))}
         accuracy={accPct}
         correct={correctChars}
@@ -463,7 +512,17 @@ export default function App() {
         duration={duration}
         lessonLabel={mode === 'lesson' && lessonVariant === 'exam' ? selectedLesson?.label : undefined}
         lessonPassed={mode === 'lesson' && lessonVariant === 'exam' ? lessonResult.passed : undefined}
+        minExamWpm={mode === 'lesson' && lessonVariant === 'exam' ? minExamWpm : undefined}
       />
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        minExamWpm={minExamWpm}
+        onSave={handleSaveSettings}
+      />
+
+      <ToastContainer items={toasts} onDismiss={dismissToast} />
 
       {/* Timeout popup */}
       {status === 'finished' && finishReason === 'timeout' && (

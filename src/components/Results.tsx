@@ -32,19 +32,21 @@ import { useI18n } from '../lib/i18n';
  }
 
 type Props = {
-   open: boolean;
-   onClose: () => void;
-   wpm: number;
-   accuracy: number;
-   correct: number;
-   incorrect: number;
-   wpmHistory: number[];
-   duration: number;
+  open: boolean;
+  onRetry: () => void;
+  onNextLesson?: () => void;
+  wpm: number;
+  accuracy: number;
+  correct: number;
+  incorrect: number;
+  wpmHistory: number[];
+  duration: number;
   lessonLabel?: string;
   lessonPassed?: boolean;
- };
+  minExamWpm?: number;
+};
 
-export default function Results({ open, onClose, wpm, accuracy, correct, incorrect, wpmHistory, duration, lessonLabel, lessonPassed }: Props) {
+export default function Results({ open, onRetry, onNextLesson, wpm, accuracy, correct, incorrect, wpmHistory, duration, lessonLabel, lessonPassed, minExamWpm }: Props) {
   const { t } = useI18n();
    if (!open) return null;
   return (
@@ -52,10 +54,15 @@ export default function Results({ open, onClose, wpm, accuracy, correct, incorre
       <div className="w-full max-w-xl bg-white border border-gray-200 rounded-2xl p-6 text-[#222222]">
         <h2 className="text-xl font-semibold mb-2">{t('results')}</h2>
         {lessonLabel && (
-          <div className={`mb-4 text-sm ${lessonPassed ? 'text-[#28A745]' : 'text-[#DC3545]'}`}>
+          <div className={`mb-2 text-sm ${lessonPassed ? 'text-[#28A745]' : 'text-[#DC3545]'}`}>
             {t('lesson')}: {lessonLabel} — {lessonPassed ? t('passedShort') : t('notPassed')}
           </div>
         )}
+        {lessonLabel && lessonPassed === false && minExamWpm ? (
+          <div className="mb-4 text-sm text-[#666666]">
+            Bạn chưa đạt đủ số WPM tối thiểu (yêu cầu ≥{minExamWpm} WPM). Bạn có thể thay đổi WPM này trong mục "Thiết lập".
+          </div>
+        ) : null}
          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
            <Stat label="Net WPM" value={wpm} />
            <Stat label="Accuracy" value={`${accuracy}%`} />
@@ -72,7 +79,16 @@ export default function Results({ open, onClose, wpm, accuracy, correct, incorre
            </div>
          </div>
          <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90 transition-colors">{t('tryAgain')}</button>
+           {lessonLabel && lessonPassed ? (
+             <>
+               <button onClick={onRetry} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">{t('restart')}</button>
+               {onNextLesson && (
+                 <button onClick={onNextLesson} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">Chuyển sang bài kế tiếp</button>
+               )}
+             </>
+           ) : (
+             <button onClick={onRetry} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90 transition-colors">{t('tryAgain')}</button>
+           )}
          </div>
        </div>
      </div>

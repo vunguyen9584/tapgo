@@ -207,5 +207,13 @@ export function generateTypingTestText(params?: {
   // Normalize adjacent punctuation defensively.
   text = text.replace(/([.,;:!?])([.,;:!?])+/g, '$1');
 
+  // Remove spaces that appear immediately before punctuation marks.
+  // Examples: "word ," -> "word,", "hello !" -> "hello!"
+  text = text.replace(/\s+([.,;:!?])/g, '$1');
+
+  // Ensure exactly one space after punctuation when followed by a non-space character.
+  // Examples: "hello,world" -> "hello, world"; "end!  Next" -> "end! Next"
+  text = text.replace(/([.,;:!?])\s*(?=\S)/g, '$1 ');
+
   return text;
 }

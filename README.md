@@ -47,3 +47,49 @@ A modern, responsive typing practice app with real‑time WPM, accuracy, and res
 ## Notes
 - Tailwind is configured to scan `index.html` and `src/**/*.{ts,tsx}`.
 - The app’s entry point is `src/main.tsx`; global styles live in `src/styles/styles.css`.
+
+## Firebase configuration (Google Sign‑In + progress storage)
+
+The app supports Google Sign‑In and saves lesson progress to Cloud Firestore. If Firebase is not configured, the Login button is disabled and progress is stored in browser `localStorage` instead.
+
+1) Create a Firebase Project and a Web App
+- Go to https://console.firebase.google.com → Add project.
+- Project settings → Your apps → Web app (</>) → Register app to obtain the Web SDK config.
+
+2) Enable Authentication (Google)
+- Authentication → Sign‑in method → Google → Enable.
+- Add your dev domain (e.g. `http://localhost:5173`) to Authorized domains if needed.
+
+3) Enable Cloud Firestore
+- Firestore Database → Create database.
+- Recommended basic rules for user document `users/{uid}`:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+4) Create environment file for Vite variables
+- In the project root, create `.env.local` (do not commit) with values from your Web SDK config:
+
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+5) Restart the dev server
+- Stop `npm run dev` (if running) and start it again to load environment variables.
+
+Technical notes:
+- Config is consumed in `src/lib/firebase.ts` via `import.meta.env.*`. When variables are present, `firebaseEnabled` is true; the app uses Google Auth and writes progress to `users/{uid}` (field `lessons`).
+- Without config, the app runs offline and stores progress in `localStorage` key `km_lessons`.

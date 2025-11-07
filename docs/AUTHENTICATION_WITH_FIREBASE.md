@@ -1,232 +1,136 @@
-Sau đây là hướng dẫn chi tiết để bạn cài đặt xác thực người dùng ở cả frontend và backend sửt dụng Firebase.
+# Hướng dẫn thiết lập xác thực người dùng với Firebase
 
-Giải pháp cốt lõi ở đây là sử dụng **Firebase ID Token (JWT)**.
+Tài liệu này hướng dẫn tích hợp Firebase Authentication cho frontend (React + Vite) và cách backend xác minh người dùng bằng Firebase ID Token (JWT).
 
-**Luồng hoạt động sẽ như sau:**
+## Kiến trúc/luồng xác thực
+1) Frontend đăng nhập qua Firebase Auth (Google, Email/Password...).
+2) Firebase Client SDK cấp ID Token cho người dùng đã đăng nhập.
+3) Frontend gọi API kèm header Authorization: `Bearer <ID_TOKEN>`.
+4) Backend nhận token và dùng Firebase Admin SDK để xác minh.
+5) Hợp lệ → xử lý request; Không hợp lệ → trả 401/403.
 
-1.  **Frontend:** Người dùng đăng nhập bằng Firebase Auth (ví dụ: email/pass, Google, Facebook).
-2.  **Frontend:** Sau khi đăng nhập thành công, Firebase Client SDK trả về một **ID Token**.
-3.  **Frontend:** Khi gọi bất kỳ API nào của backend, frontend sẽ đính kèm ID Token này vào **header `Authorization`** (thường là `Bearer <token>`).
-4.  **Backend:** Nhận được yêu cầu, backend lấy ID Token từ header.
-5.  **Backend:** Sử dụng **Firebase Admin SDK** để *xác minh* ID Token này.
-6.  **Backend:**
-      * Nếu token hợp lệ, backend tin tưởng người dùng này đã được xác thực và xử lý yêu cầu.
-      * Nếu token không hợp lệ (hết hạn, giả mạo), backend trả về lỗi `401 Unauthorized` hoặc `403 Forbidden`.
+## Yêu cầu trước khi bắt đầu
+- Firebase Project và Web App (Firebase Console).
+- Bật các Sign-in providers cần dùng (ví dụ: Google, Email/Password).
+- Thêm domain phát triển vào Authorized domains (ví dụ: `localhost` với Vite: `http://localhost:5173`).
+- (Nếu có backend) Service Account JSON cho Admin SDK, lưu ở secret/biến môi trường.
 
-Dưới đây là các bước cụ thể cho từng phần.
+## Thiết lập trên Firebase Console
+1) Tạo Project và Web App, lấy cấu hình Web (apiKey, authDomain, projectId, ...).
+2) Vào Authentication → Sign-in method → Enable các providers (Google/Email-Password...).
+3) Vào Authentication → Settings → Authorized domains, thêm domain dev nếu thiếu.
 
------
+---
 
-## 👩‍💻 Phần Frontend (Client-side)
+## Frontend (React + Vite + TypeScript)
+Thư viện `firebase` đã có trong dự án. Nếu thiếu, cài bằng: `npm i firebase`.
 
-Phần này sử dụng **Firebase Client SDK**. Giả sử bạn đang dùng JavaScript/TypeScript.
+### Biến môi trường (Vite)
+Tạo file `.env.local` (không commit) ở thư mục gốc và điền các khóa từ Firebase Web App:
 
-### 1\. Cài đặt và Khởi tạo Firebase
-
-Bạn cần cài đặt SDK của Firebase:
-
-```bash
-npm install firebase
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
 ```
 
-Sau đó, khởi tạo Firebase trong ứng dụng của bạn (thường là ở file `index.js` hoặc `firebase.js`):
+### Khởi tạo SDK và API sẵn có
+Dự án đã có `src/lib/firebase.ts` khởi tạo app và xuất sẵn các hàm:
+- `firebaseEnabled`: bật khi cấu hình hợp lệ.
+- `loginWithGoogle()`, `logout()`.
+- `onUserChange(cb)`: theo dõi trạng thái đăng nhập.
+- `loadProgress(uid)`, `saveProgress(uid, lessons)`: ví dụ lưu Firestore.
 
-```javascript
-// Import các hàm cần thiết
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+Ví dụ sử dụng trong React:
 
-// Cấu hình Firebase của bạn
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  // ...các thông tin khác
-};
+```ts
+import { loginWithGoogle, logout, onUserChange, firebaseEnabled, auth } from "../src/lib/firebase";
 
-// Khởi tạo Firebase
-const app = initializeApp(firebaseConfig);
-
-// Khởi tạo Firebase Auth
-export const auth = getAuth(app);
-```
-
-### 2\. Xử lý Đăng nhập và Lấy ID Token
-
-Khi người dùng đăng nhập (hoặc đã đăng nhập từ phiên trước), bạn có thể lấy ID Token của họ.
-
-```javascript
-import { auth } from "./firebase"; // Import từ file cấu hình của bạn
-import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-
-// Ví dụ hàm đăng nhập
-async function login(email, password) {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log("Đăng nhập thành công!", userCredential.user);
-  } catch (error) {
-    console.error("Lỗi đăng nhập:", error);
-  }
-}
-
-// Hàm quan trọng: Lấy ID Token hiện tại
-async function getIdToken() {
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      // Hàm này tự động làm mới token nếu nó sắp hết hạn
-      const idToken = await user.getIdToken(true); // 'true' để buộc làm mới (tùy chọn)
-      return idToken;
-    } catch (error) {
-      console.error("Lỗi khi lấy ID token:", error);
-      return null;
-    }
-  }
-  return null; // Không có người dùng đăng nhập
-}
-```
-
-> **Lưu ý:** Bạn nên sử dụng `onAuthStateChanged` để theo dõi trạng thái đăng nhập của người dùng và lấy token khi trạng thái thay đổi.
-
-### 3\. Gọi API Backend với Token
-
-Khi bạn gọi backend (ví dụ: dùng `fetch` hoặc `axios`), hãy đính kèm token vào header `Authorization`.
-
-```javascript
-async function callProtectedApi() {
-  const token = await getIdToken();
-
-  if (!token) {
-    alert("Bạn cần đăng nhập để thực hiện hành động này!");
-    return;
-  }
-
-  try {
-    const response = await fetch("https://your-backend-api.com/api/protected-data", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        // Đây là phần quan trọng
-        "Authorization": `Bearer ${token}`
-      },
-    });
-
-    if (!response.ok) {
-      // Backend trả về lỗi (ví dụ: 401 hoặc 403)
-      throw new Error(`Lỗi: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log("Dữ liệu từ backend:", data);
-
-  } catch (error) {
-    console.error("Lỗi khi gọi API:", error);
-    // Nếu lỗi là 401/403, có thể token đã hết hạn hoặc không hợp lệ
-  }
-}
-```
-
------
-
-## ⚙️ Phần Backend (Server-side)
-
-Phần này sử dụng **Firebase Admin SDK**. Ví dụ này sử dụng Node.js và Express.js, nhưng logic là tương tự cho các ngôn ngữ khác (Python, Go, Java...).
-
-### 1\. Cài đặt và Khởi tạo Admin SDK
-
-Bạn cần cài đặt `firebase-admin`:
-
-```bash
-npm install firebase-admin
-```
-
-Bạn cũng cần tải **Service Account Key** (file JSON) từ Project Settings \> Service Accounts trong Firebase Console của bạn.
-
-Khởi tạo Admin SDK (thường ở file `index.js` hoặc `server.js`):
-
-```javascript
-const admin = require("firebase-admin");
-
-// Đường dẫn đến file service account key của bạn
-const serviceAccount = require("./path/to/your-service-account-key.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+onUserChange((user) => {
+  console.log("auth state:", user?.uid);
 });
-```
 
-### 2\. Tạo Middleware Xác thực 🔒
-
-Cách tốt nhất để bảo vệ các route của bạn là tạo một **middleware**. Middleware này sẽ kiểm tra token trước khi cho phép request đi tiếp đến logic chính.
-
-```javascript
-const admin = require("firebase-admin");
-
-// Middleware để xác minh ID Token
-async function verifyAuthToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).send({ error: "Unauthorized. No token provided." });
-  }
-
-  const idToken = authHeader.split(" ")[1]; // Lấy token sau "Bearer "
-
-  try {
-    // Xác minh token bằng Admin SDK
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    
-    // Token hợp lệ!
-    // Gắn thông tin người dùng đã giải mã vào request để sử dụng ở các route sau
-    req.user = decodedToken;
-    next(); // Cho phép request đi tiếp
-  } catch (error) {
-    // Token không hợp lệ (hết hạn, giả mạo, v.v.)
-    console.error("Lỗi xác thực token:", error);
-    return res.status(403).send({ error: "Forbidden. Invalid token." });
-  }
+async function signIn() {
+  if (!firebaseEnabled) return;
+  await loginWithGoogle();
 }
 
-module.exports = verifyAuthToken;
+async function signOut() {
+  await logout();
+}
 ```
 
-### 3\. Áp dụng Middleware cho các Route
+### Gọi API backend kèm ID Token
+Khi gọi API cần xác thực, lấy ID Token từ người dùng hiện tại và đính kèm vào header:
 
-Bây giờ, bạn chỉ cần thêm middleware `verifyAuthToken` vào bất kỳ route nào bạn muốn bảo vệ.
+```ts
+async function callProtectedApi(url: string, init: RequestInit = {}) {
+  const token = await auth?.currentUser?.getIdToken();
+  const headers = new Headers(init.headers || {});
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return fetch(url, { ...init, headers });
+}
+```
 
-```javascript
-const express = require("express");
+---
+
+## Backend (tùy chọn)
+Ví dụ với Node.js + Express và Firebase Admin SDK.
+
+### Cài đặt
+```
+npm i firebase-admin express
+```
+
+### Khởi tạo Admin SDK (ESM)
+Không nhúng file JSON trực tiếp; đọc từ biến môi trường:
+
+```ts
+import express from "express";
+import { initializeApp, cert } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON!);
+initializeApp({ credential: cert(serviceAccount) });
+
 const app = express();
-const verifyAuthToken = require("./verifyAuthToken"); // Import middleware
-
 app.use(express.json());
+```
 
-// --- Ví dụ các Route ---
+### Middleware xác minh ID Token
+```ts
+import type { Request, Response, NextFunction } from "express";
 
-// Route công khai (public) - không cần xác thực
-app.get("/api/public-data", (req, res) => {
-  res.send({ message: "Đây là dữ liệu công khai." });
-});
+async function verifyAuthToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.header("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return res.status(401).json({ error: "Unauthorized" });
+  const token = authHeader.slice("Bearer ".length);
+  try {
+    const decoded = await getAuth().verifyIdToken(token);
+    (req as any).user = decoded;
+    return next();
+  } catch {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+}
 
-// Route được bảo vệ (protected) - YÊU CẦU XÁC THỰC
-app.get("/api/protected-data", verifyAuthToken, (req, res) => {
-  // Nếu request đến được đây, nghĩa là token đã HỢP LỆ
-  
-  // Bạn có thể truy cập thông tin người dùng từ `req.user`
-  const uid = req.user.uid;
-  const email = req.user.email;
-
-  res.send({ 
-    message: `Chào ${email}, bạn đã được xác thực!`,
-    yourUserId: uid 
-  });
-});
-
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server đang chạy ở cổng ${PORT}`);
+app.get("/api/protected", verifyAuthToken, (req, res) => {
+  res.json({ ok: true, uid: (req as any).user.uid });
 });
 ```
 
-Khi frontend gọi `/api/protected-data` mà không có token hợp lệ, middleware sẽ chặn lại và trả về lỗi 401 hoặc 403, đúng như yêu cầu của bạn.
+---
+
+## Kiểm thử nhanh
+1) `npm run dev` → mở app tại `http://localhost:5173`.
+2) Đăng nhập Google (bảo đảm provider đã bật và domain đã được cho phép).
+3) Gọi API backend bằng hàm `callProtectedApi` ở trên và kiểm tra 200/401/403.
+
+## Lưu ý bảo mật và lỗi thường gặp
+- Không commit `.env*` và Service Account JSON; luôn dùng biến môi trường/secret manager.
+- 401: thiếu hoặc sai header Authorization.
+- 403: token hết hạn/không hợp lệ/không thuộc project.
+- Provider chưa enable hoặc domain chưa nằm trong Authorized domains sẽ khiến đăng nhập thất bại.

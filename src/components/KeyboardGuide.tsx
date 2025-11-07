@@ -60,7 +60,7 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
    const activeFinger: Finger | undefined = norm ? fingerForKey(norm) : undefined;
 
   return (
-    <div className="classic-panel p-3 sm:p-4">
+    <div className="classic-panel p-3 sm:p-4 overflow-hidden">
        <div className="flex items-center justify-between mb-2">
         <div className="text-xs uppercase tracking-wide text-[#666666]">Keyboard & Hands</div>
         <button onClick={onToggle} className="text-xs px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-100">
@@ -68,9 +68,9 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
          </button>
        </div>
        {show && (
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 overflow-x-auto">
           <Hand side="left" active={activeFinger} />
-          <div className="space-y-1 flex-1">
+          <div className="space-y-1 flex-1 min-w-0">
             {keyRows.map((row, idx) => (
               <div key={idx} className="flex justify-center gap-1">
                 {row.map((k) => {
@@ -98,7 +98,7 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
  function Hand({ side, active }: { side: 'left' | 'right'; active?: Finger }) {
    const order: Finger[] = side === 'left' ? ['lp','lr','lm','li','thumb'] : ['thumb','ri','rm','rr','rp'];
    return (
-     <div className="classic-panel p-2 flex flex-nowrap items-end justify-center gap-1 shrink-0">
+    <div className="classic-panel p-2 flex flex-nowrap items-end justify-center gap-1 shrink-0 overflow-hidden">
        {order.map((f) => {
          const base = `relative h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border bg-white border-gray-300 flex-none`;
          const isActive = active===f;

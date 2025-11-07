@@ -33,9 +33,9 @@ export default function TypingArea({ text, typed, status, onType }: Props) {
   // Compute next word highlight boundaries
   const caret = typed.length;
   let start = caret;
-  while (start < text.length && /\s/.test(text[start])) start++;
+  while (start < text.length && /\s/.test(text[start] ?? '')) start++;
   let end = start;
-  while (end < text.length && !/\s/.test(text[end])) end++;
+  while (end < text.length && !/\s/.test(text[end] ?? '')) end++;
 
   return (
     <div className="space-y-3">

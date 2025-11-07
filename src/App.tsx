@@ -219,7 +219,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
           timeLeft={timeLeft}
         />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-3 space-y-4">
             {/* Typing area is now the main focus; stats are unified above */}
             <section className="space-y-4">
               <TypingArea

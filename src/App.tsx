@@ -24,6 +24,8 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
   const [mode, setMode] = useState<Mode>('quote');
   const [charSet, setCharSet] = useState<string>('asdfg');
   const [selectedLessonId, setSelectedLessonId] = useState<string | undefined>(LESSONS[0]?.id);
+  type LessonVariant = 'new' | 'review' | 'exam';
+  const [lessonVariant, setLessonVariant] = useState<LessonVariant>('new');
   const [lessonsProgress, setLessonsProgress] = useState<LessonsProgressMap>({});
   const [user, setUser] = useState<import('firebase/auth').User | null>(null);
   const [lessonResult, setLessonResult] = useState<{ label?: string; passed?: boolean }>({});
@@ -98,6 +100,12 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
      return () => { if (tickRef.current) clearInterval(tickRef.current); tickRef.current = null; };
    }, [status, duration, text]);
 
+  function cumulativeChars(uptoId: string): string {
+    const idx = LESSONS.findIndex(l => l.id === uptoId);
+    const slice = idx >= 0 ? LESSONS.slice(0, idx + 1) : [];
+    return slice.map(l => l.chars).join('');
+  }
+
    function start() {
      if (status !== 'pending') return;
      setStatus('running');
@@ -123,24 +131,27 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
     if (reason === 'completed' && mode === 'lesson' && selectedLessonId) {
       const lesson: Lesson | undefined = LESSONS.find(l => l.id === selectedLessonId);
       if (lesson) {
-        const passed = finalWpm >= lesson.wpmThreshold && finalAcc >= lesson.accuracyThreshold;
-        setLessonResult({ label: lesson.label, passed });
-        setLessonsProgress(prev => {
-          const next = { ...prev, [lesson.id]: {
-            completed: prev[lesson.id]?.completed || passed,
-            bestWpm: Math.max(prev[lesson.id]?.bestWpm || 0, Math.round(finalWpm)),
-            bestAccuracy: Math.max(prev[lesson.id]?.bestAccuracy || 0, Math.round(finalAcc)),
-            lastAt: Date.now(),
-          }};
-          try {
-            if (user && firebaseEnabled) {
-              saveProgress(user.uid, next);
-            } else {
-              localStorage.setItem('km_lessons', JSON.stringify(next));
-            }
-          } catch {}
-          return next;
-        });
+        const isExam = lessonVariant === 'exam';
+        const passed = isExam ? (Math.round(finalWpm) >= 30) : false;
+        setLessonResult(isExam ? { label: lesson.label, passed } : {});
+        if (isExam) {
+          setLessonsProgress(prev => {
+            const next = { ...prev, [lesson.id]: {
+              completed: prev[lesson.id]?.completed || passed,
+              bestWpm: Math.max(prev[lesson.id]?.bestWpm || 0, Math.round(finalWpm)),
+              bestAccuracy: Math.max(prev[lesson.id]?.bestAccuracy || 0, Math.round(finalAcc)),
+              lastAt: Date.now(),
+            }};
+            try {
+              if (user && firebaseEnabled) {
+                saveProgress(user.uid, next);
+              } else {
+                localStorage.setItem('km_lessons', JSON.stringify(next));
+              }
+            } catch {}
+            return next;
+          });
+        }
       }
     } else if (reason === 'completed') {
       setLessonResult({});
@@ -260,26 +271,66 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
           <aside className="space-y-4 lg:col-span-1">
             <div className="classic-panel p-3 sm:p-4">
               <div className="text-xs uppercase tracking-wide text-[#666666] mb-2">Lessons</div>
-              <div className="flex flex-col gap-1">
-                {LESSONS.map((l) => (
-                  <button
-                    key={l.id}
-                    disabled={status === 'running'}
-                    onClick={() => {
-                      if (status === 'running') return;
-                      setMode('lesson');
-                      setSelectedLessonId(l.id);
-                      setText(generateCharPracticeText(l.chars));
-                      setTyped('');
-                      setLessonResult({});
-                    }}
-                    className={`text-left px-3 py-1.5 rounded-md border text-sm ${
-                      mode === 'lesson' && selectedLessonId === l.id
-                        ? 'bg-[#007BFF] text-white border-[#007BFF]'
-                        : 'bg-white border-gray-300 hover:bg-gray-100'
-                    } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                  >{l.label}</button>
-                ))}
+              <div className="flex flex-col gap-2">
+                {LESSONS.map((l) => {
+                  const examPassed = !!lessonsProgress[l.id]?.completed;
+                  const isSelected = mode === 'lesson' && selectedLessonId === l.id;
+                  return (
+                    <div key={l.id} className={`rounded-md border ${isSelected ? 'border-[#007BFF]' : 'border-gray-300'}`}>
+                      <div className="px-3 py-1.5 flex items-center justify-between">
+                        <div className="text-sm font-medium text-[#222222]">{l.label}</div>
+                        {examPassed && <span className="text-[#28A745] text-xs">✓ Passed</span>}
+                      </div>
+                      <div className="px-2 pb-2 grid grid-cols-1 gap-1">
+                        <button
+                          disabled={status === 'running'}
+                          onClick={() => {
+                            if (status === 'running') return;
+                            setMode('lesson');
+                            setSelectedLessonId(l.id);
+                            setLessonVariant('new');
+                            setText(generateCharPracticeText(l.chars));
+                            setTyped('');
+                            setLessonResult({});
+                          }}
+                          className={`text-left px-2 py-1 rounded-md border text-xs ${
+                            isSelected && lessonVariant === 'new' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                          } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                        >Thực hành phím mới</button>
+                        <button
+                          disabled={status === 'running'}
+                          onClick={() => {
+                            if (status === 'running') return;
+                            setMode('lesson');
+                            setSelectedLessonId(l.id);
+                            setLessonVariant('review');
+                            setText(generateCharPracticeText(cumulativeChars(l.id)));
+                            setTyped('');
+                            setLessonResult({});
+                          }}
+                          className={`text-left px-2 py-1 rounded-md border text-xs ${
+                            isSelected && lessonVariant === 'review' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                          } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                        >Ôn tập các phím đến hiện tại</button>
+                        <button
+                          disabled={status === 'running'}
+                          onClick={() => {
+                            if (status === 'running') return;
+                            setMode('lesson');
+                            setSelectedLessonId(l.id);
+                            setLessonVariant('exam');
+                            setText(generateCharPracticeText(cumulativeChars(l.id)));
+                            setTyped('');
+                            setLessonResult({});
+                          }}
+                          className={`text-left px-2 py-1 rounded-md border text-xs ${
+                            isSelected && lessonVariant === 'exam' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                          } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                        >Kiểm tra cuối bài</button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div className="classic-panel p-3 sm:p-4">
@@ -367,8 +418,8 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
          incorrect={incorrectChars}
          wpmHistory={wpmHistory}
          duration={duration}
-        lessonLabel={mode === 'lesson' ? selectedLesson?.label : undefined}
-        lessonPassed={mode === 'lesson' ? lessonResult.passed : undefined}
+        lessonLabel={mode === 'lesson' && lessonVariant === 'exam' ? selectedLesson?.label : undefined}
+        lessonPassed={mode === 'lesson' && lessonVariant === 'exam' ? lessonResult.passed : undefined}
        />
 
        {/* Timeout popup */}

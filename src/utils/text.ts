@@ -29,8 +29,8 @@ const QUOTES: readonly [string, ...string[]] = [
 
  function uniqueChars(input: string): string[] {
    const set = new Set<string>();
-   for (const ch of input.toLowerCase()) {
-     if (/^[a-z]$/.test(ch)) set.add(ch);
+   for (const ch of input) {
+     if (!/\s/.test(ch)) set.add(ch.toLowerCase());
    }
    return Array.from(set);
  }

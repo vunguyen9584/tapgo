@@ -27,6 +27,9 @@ import { useI18n } from '../lib/i18n';
      '–': '-',
      '—': '-',
      '…': '.',
+     ':': ';',
+     '"': '\'',
+     '?': '/',
    };
    const repl = map[ch] ?? ch;
    return repl.toLowerCase();

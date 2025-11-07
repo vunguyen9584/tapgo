@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useI18n } from '../lib/i18n';
 import type { AppStatus } from '../types';
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 
 export default function TypingArea({ text, typed, status, onType, actions }: Props) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => { inputRef.current?.focus(); }, []);
   useEffect(() => { if (status !== 'finished') inputRef.current?.focus(); }, [status]);
@@ -68,7 +70,7 @@ export default function TypingArea({ text, typed, status, onType, actions }: Pro
           className="w-full bg-white border border-gray-300 rounded-md outline-none resize-none font-mono text-lg sm:text-2xl leading-8 sm:leading-9 text-[#222222] placeholder-[#666666] px-2 py-1 focus:border-[#007BFF]"
           placeholder="Type here..."
         />
-        <div className="text-xs text-[#666666] mt-2">Your input</div>
+        <div className="text-xs text-[#666666] mt-2">{t('yourInput')}</div>
       </div>
     </div>
   );

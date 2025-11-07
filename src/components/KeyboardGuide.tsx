@@ -1,4 +1,5 @@
- import React from 'react';
+import React from 'react';
+import { useI18n } from '../lib/i18n';
 
  type Props = {
    activeChar?: string;
@@ -65,6 +66,7 @@
  };
 
 export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
+   const { t } = useI18n();
    const norm = normalize(activeChar);
    const activeKey = norm;
    const activeFinger: Finger | undefined = norm ? fingerForKey(norm) : undefined;
@@ -72,9 +74,9 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
   return (
     <div className="classic-panel p-3 sm:p-4 overflow-hidden">
        <div className="flex items-center justify-between mb-2">
-        <div className="text-xs uppercase tracking-wide text-[#666666]">Keyboard & Hands</div>
+        <div className="text-xs uppercase tracking-wide text-[#666666]">{t('keyboardHands')}</div>
         <button onClick={onToggle} className="text-xs px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-100">
-           {show ? 'Hide' : 'Show'}
+           {show ? t('hide') : t('show')}
          </button>
        </div>
        {show && (

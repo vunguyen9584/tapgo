@@ -8,9 +8,11 @@ import { computeCorrectIncorrect, pickQuote, generateCharPracticeText, generateW
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
 import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
+import { useI18n } from './lib/i18n';
  import './styles/styles.css';
 
  export default function App() {
+  const { t, locale, setLocale } = useI18n();
    const [text, setText] = useState<string>(pickQuote());
    const [typed, setTyped] = useState<string>('');
    const [status, setStatus] = useState<AppStatus>('pending');
@@ -23,7 +25,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
    const [incorrectChars, setIncorrectChars] = useState<number>(0);
   const [mode, setMode] = useState<Mode>('quote');
   const [charSet, setCharSet] = useState<string>('asdfg');
-  const [selectedLessonId, setSelectedLessonId] = useState<string | undefined>(LESSONS[0]?.id);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | undefined>(undefined);
   type LessonVariant = 'new' | 'review' | 'exam';
   const [lessonVariant, setLessonVariant] = useState<LessonVariant>('new');
   const [lessonsProgress, setLessonsProgress] = useState<LessonsProgressMap>({});
@@ -234,11 +236,15 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
   const title = mode === 'lesson'
     ? `${selectedLesson?.label ?? 'Lesson'}`
     : mode === 'chars'
-    ? 'Custom Characters'
-    : 'Typing test';
+    ? t('customCharacters')
+    : t('typingTestTitle');
 
   const rightLogin = (
-    <div>
+    <div className="flex items-center gap-2">
+      <select value={locale} onChange={(e) => setLocale(e.target.value as any)} className="px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
+        <option value="vi">VI</option>
+        <option value="en">EN</option>
+      </select>
       {firebaseEnabled ? (
         user ? (
           <div className="flex items-center gap-2">
@@ -270,17 +276,26 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
           {/* Side menu */}
           <aside className="space-y-4 lg:col-span-1">
             <div className="classic-panel p-3 sm:p-4">
-              <div className="text-xs uppercase tracking-wide text-[#666666] mb-2">Lessons</div>
+              <div className="text-xs uppercase tracking-wide text-[#666666] mb-2">{t('lessonsHeading')}</div>
               <div className="flex flex-col gap-2">
                 {LESSONS.map((l) => {
                   const examPassed = !!lessonsProgress[l.id]?.completed;
                   const isSelected = mode === 'lesson' && selectedLessonId === l.id;
                   return (
                     <div key={l.id} className={`rounded-md border ${isSelected ? 'border-[#007BFF]' : 'border-gray-300'}`}>
-                      <div className="px-3 py-1.5 flex items-center justify-between">
-                        <div className="text-sm font-medium text-[#222222]">{l.label}</div>
-                        {examPassed && <span className="text-[#28A745] text-xs">✓ Passed</span>}
-                      </div>
+                      <button
+                        className="w-full px-3 py-1.5 flex items-center justify-between"
+                        onClick={() => {
+                          if (status === 'running') return;
+                          setMode('lesson');
+                          setSelectedLessonId(l.id);
+                        }}
+                        disabled={status === 'running'}
+                      >
+                        <div className="text-sm font-medium text-[#222222] text-left">{l.label}</div>
+                        {examPassed && <span className="text-[#28A745] text-xs">✓ {t('passed')}</span>}
+                      </button>
+                      {isSelected && (
                       <div className="px-2 pb-2 grid grid-cols-1 gap-1">
                         <button
                           disabled={status === 'running'}
@@ -296,7 +311,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                           className={`text-left px-2 py-1 rounded-md border text-xs ${
                             isSelected && lessonVariant === 'new' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                           } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                        >Thực hành phím mới</button>
+                        >{t('newKeysPractice')}</button>
                         <button
                           disabled={status === 'running'}
                           onClick={() => {
@@ -311,7 +326,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                           className={`text-left px-2 py-1 rounded-md border text-xs ${
                             isSelected && lessonVariant === 'review' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                           } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                        >Ôn tập các phím đến hiện tại</button>
+                        >{t('reviewUpToNow')}</button>
                         <button
                           disabled={status === 'running'}
                           onClick={() => {
@@ -326,8 +341,9 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                           className={`text-left px-2 py-1 rounded-md border text-xs ${
                             isSelected && lessonVariant === 'exam' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                           } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                        >Kiểm tra cuối bài</button>
+                        >{t('finalExam')}</button>
                       </div>
+                      )}
                     </div>
                   );
                 })}
@@ -341,14 +357,14 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                   className={`text-left px-3 py-1.5 rounded-md border text-sm ${
                     mode === 'chars' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                   } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                >Custom Characters</button>
+                >{t('customCharacters')}</button>
                 <button
                   disabled={status === 'running'}
                   onClick={() => { if (status !== 'running') { setMode('quote'); setText(pickQuote()); setTyped(''); setLessonResult({}); } }}
                   className={`text-left px-3 py-1.5 rounded-md border text-sm ${
                     mode === 'quote' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                   } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                >Typing test</button>
+                >{t('typingTestTitle')}</button>
               </div>
             </div>
           </aside>
@@ -368,17 +384,17 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                       title="Restart"
                       onClick={restartSame}
                       className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100"
-                    >Restart</button>
+                    >{t('restart')}</button>
                     <button
                       title="New text"
                       onClick={restartNewText}
                       className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100"
-                    >New text</button>
+                    >{t('newText')}</button>
                   </div>
                 }
               />
               {status === 'pending' && (
-                <p className="text-[#666666] text-sm">Start typing to begin the test.</p>
+                <p className="text-[#666666] text-sm">{t('startTyping')}</p>
               )}
               {/* Removed time selection; duration auto-computed at 10 WPM */}
 
@@ -426,11 +442,11 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
        {status === 'finished' && finishReason === 'timeout' && (
          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
            <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-6 text-[#222222]">
-             <h2 className="text-xl font-semibold mb-2">Time is up</h2>
-             <p className="text-[#666666] mb-6">You have run out of time for this text.</p>
+             <h2 className="text-xl font-semibold mb-2">{t('timeIsUp')}</h2>
+             <p className="text-[#666666] mb-6">{t('timeUpMsg')}</p>
              <div className="flex justify-end gap-2">
-               <button onClick={goHome} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">Home</button>
-               <button onClick={restartSame} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">Restart</button>
+               <button onClick={goHome} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">{t('home')}</button>
+               <button onClick={restartSame} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">{t('restart')}</button>
              </div>
            </div>
          </div>

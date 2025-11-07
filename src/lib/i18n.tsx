@@ -6,6 +6,8 @@ type Dict = Record<string, string>;
 
 const resources: Record<Locale, Dict> = {
   vi: {
+    appName: 'Keyboard Master',
+    metaDescription: 'Luyện gõ phím online với bài tập đa dạng, theo dõi WPM, độ chính xác và biểu đồ theo thời gian. Miễn phí, không cần đăng ký.',
     lessonsHeading: 'Bài học',
     newKeysPractice: 'Thực hành phím mới',
     reviewUpToNow: 'Ôn tập các phím đến hiện tại',
@@ -38,6 +40,8 @@ const resources: Record<Locale, Dict> = {
     statsTime: 'Thời gian'
   },
   en: {
+    appName: 'Keyboard Master',
+    metaDescription: 'Practice typing online with diverse exercises. Track WPM, accuracy, and progress over time. Free, no sign-up required.',
     lessonsHeading: 'Lessons',
     newKeysPractice: 'New keys practice',
     reviewUpToNow: 'Review keys up to now',

@@ -50,3 +50,16 @@ export async function saveProgress(uid: string, lessons: Record<string, any>) {
   const ref = doc(db, 'users', uid);
   await setDoc(ref, { lessons }, { merge: true });
 }
+
+export async function saveSettings(uid: string, settings: Record<string, any>) {
+  if (!db) return;
+  const ref = doc(db, 'users', uid);
+  await setDoc(ref, { settings }, { merge: true });
+}
+
+export async function loadSettings(uid: string): Promise<any | undefined> {
+  if (!db) return undefined;
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  return snap.exists() ? (snap.data().settings as any) : undefined;
+}

@@ -10,7 +10,7 @@ import { ToastContainer, type ToastItem } from './components/Toast';
 import { computeCorrectIncorrect, generateCharPracticeText, generateWordPracticeText, generateTypingTestText } from './utils/text';
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
-import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
+import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress, saveSettings } from './lib/firebase';
 import UserMenu from './components/UserMenu';
 import { useI18n } from './lib/i18n';
 import './styles/styles.css';
@@ -75,11 +75,20 @@ export default function App() {
         const data = await loadProgress(u.uid);
         const map = (data?.lessons as LessonsProgressMap) || {};
         setLessonsProgress(map);
+        const remoteWpm = typeof data?.settings?.minExamWpm === 'number' ? Number(data.settings.minExamWpm) : undefined;
+        if (remoteWpm && !Number.isNaN(remoteWpm)) {
+          setMinExamWpm(remoteWpm);
+          try { localStorage.setItem('km_minExamWpm', String(remoteWpm)); } catch { }
+        }
       } else {
         try {
           const local = localStorage.getItem('km_lessons');
           setLessonsProgress(local ? JSON.parse(local) : {});
         } catch { setLessonsProgress({}); }
+        try {
+          const v = localStorage.getItem('km_minExamWpm');
+          setMinExamWpm(v ? Number(v) : 30);
+        } catch { setMinExamWpm(30); }
       }
     });
     return () => { unsub && unsub(); };
@@ -291,6 +300,7 @@ export default function App() {
   function handleSaveSettings(nextWpm: number) {
     setMinExamWpm(nextWpm);
     try { localStorage.setItem('km_minExamWpm', String(nextWpm)); } catch {}
+    try { if (user && firebaseEnabled) { saveSettings(user.uid, { minExamWpm: nextWpm }); } } catch {}
   }
 
   function goToNextLesson() {

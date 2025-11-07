@@ -49,3 +49,23 @@ const QUOTES: readonly [string, ...string[]] = [
    }
    return words.join(' ').slice(0, approxLength).trimEnd();
  }
+
+const COMMON_WORDS = [
+  'the','be','to','of','and','a','in','that','have','I',
+  'it','for','not','on','with','he','as','you','do','at',
+  'this','but','his','by','from','they','we','say','her','she',
+  'or','an','will','my','one','all','would','there','their','what',
+  'so','up','out','if','about','who','get','which','go','me',
+  'when','make','can','like','time','no','just','him','know','take',
+  'people','into','year','your','good','some','could','them','see','other'
+];
+
+export function generateWordPracticeText(count = 60): string {
+  const words: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const idx = Math.floor(Math.random() * COMMON_WORDS.length);
+    const w = COMMON_WORDS[idx] ?? 'the';
+    words.push(w);
+  }
+  return words.join(' ');
+}

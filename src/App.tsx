@@ -1,10 +1,11 @@
  import React, { useEffect, useRef, useState } from 'react';
 import TypingArea from './components/TypingArea';
-import Metrics from './components/Metrics';
+import StatsBar from './components/StatsBar';
 import Results from './components/Results';
 import LessonPicker from './components/LessonPicker';
 import KeyboardGuide from './components/KeyboardGuide';
-import { computeCorrectIncorrect, pickQuote, DURATION_OPTIONS, generateCharPracticeText } from './utils/text';
+import TitleBar from './components/TitleBar';
+import { computeCorrectIncorrect, pickQuote, DURATION_OPTIONS, generateCharPracticeText, generateWordPracticeText } from './utils/text';
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
 import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
@@ -146,10 +147,16 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
      setTyped(nextTyped);
    }
 
-   function restart() {
+  function restart() {
      if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
     const lesson = LESSONS.find(l => l.id === selectedLessonId);
-    const nextText = mode === 'quote' ? pickQuote() : mode === 'chars' ? generateCharPracticeText(charSet) : generateCharPracticeText(lesson?.chars || 'asdf');
+    const nextText = mode === 'quote'
+      ? pickQuote()
+      : mode === 'words'
+      ? generateWordPracticeText()
+      : mode === 'chars'
+      ? generateCharPracticeText(charSet)
+      : generateCharPracticeText(lesson?.chars || 'asdf');
     setText(nextText);
      setTyped('');
      startTimeRef.current = null;
@@ -174,66 +181,46 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
   const selectedLesson = LESSONS.find(l => l.id === selectedLessonId);
   const activeChar = status === 'finished' ? undefined : text[typed.length];
 
-   return (
-     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center px-4 py-8">
-       <div className="w-full max-w-4xl">
-         <header className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Keyboard Master</h1>
-           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex rounded-md overflow-hidden border border-slate-700">
-              <button
-                onClick={() => { if (status !== 'running') { setMode('quote'); setText(pickQuote()); setTyped(''); setLessonResult({}); } }}
-                className={`px-3 py-1.5 text-sm ${mode === 'quote' ? 'bg-sky-500 text-white' : 'bg-slate-900 hover:bg-slate-800'}`}
-              >Quotes</button>
-              <button
-                onClick={() => { if (status !== 'running') { setMode('chars'); setText(generateCharPracticeText(charSet)); setTyped(''); setLessonResult({}); } }}
-                className={`px-3 py-1.5 text-sm border-l border-slate-700 ${mode === 'chars' ? 'bg-sky-500 text-white' : 'bg-slate-900 hover:bg-slate-800'}`}
-              >Char Practice</button>
-              <button
-                onClick={() => { if (status !== 'running') { setMode('lesson'); const l = LESSONS.find(ll => ll.id === selectedLessonId) || LESSONS[0]; setSelectedLessonId(l?.id); setText(generateCharPracticeText(l?.chars || 'asdf')); setTyped(''); setLessonResult({}); } }}
-                className={`px-3 py-1.5 text-sm border-l border-slate-700 ${mode === 'lesson' ? 'bg-sky-500 text-white' : 'bg-slate-900 hover:bg-slate-800'}`}
-              >Lessons</button>
-            </div>
-             {DURATION_OPTIONS.map(d => (
-               <button
-                 key={d}
-                 onClick={() => changeDuration(d)}
-                 className={`px-3 py-1.5 rounded-md text-sm transition-colors border ${
-                   duration === d ? 'bg-sky-500 text-white border-sky-500' : 'bg-slate-900 border-slate-700 hover:bg-slate-800'
-                 } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-               >
-                 {d}s
-               </button>
-             ))}
-             <button
-              onClick={restart}
-               className="ml-2 px-3 py-1.5 rounded-md text-sm border border-slate-700 hover:bg-slate-800 transition-colors"
-             >
-               New text
-             </button>
-            <button
-              onClick={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch {} }}
-              className="px-3 py-1.5 rounded-md text-sm border border-slate-700 hover:bg-slate-800"
-            >{showGuide ? 'Hide guide' : 'Show guide'}</button>
-            <div className="ml-2">
-              {firebaseEnabled ? (
-                user ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400 text-sm hidden sm:inline">{user.displayName || user.email}</span>
-                    <button onClick={() => logout()} className="px-3 py-1.5 rounded-md text-sm border border-slate-700 hover:bg-slate-800">Logout</button>
-                  </div>
-                ) : (
-                  <button onClick={() => loginWithGoogle()} className="px-3 py-1.5 rounded-md text-sm border border-slate-700 hover:bg-slate-800">Login</button>
-                )
-              ) : (
-                <button disabled className="px-3 py-1.5 rounded-md text-sm border border-slate-800 text-slate-500">Login (cfg required)</button>
-              )}
-            </div>
-           </div>
-         </header>
+  const title = mode === 'lesson'
+    ? `New keys: ${selectedLesson?.label ?? ''}`
+    : mode === 'chars'
+    ? 'Characters Practice'
+    : mode === 'words'
+    ? 'Words Practice'
+    : 'Quotes';
+
+  const rightLogin = (
+    <div>
+      {firebaseEnabled ? (
+        user ? (
+          <div className="flex items-center gap-2">
+            <span className="text-[#666666] text-sm hidden sm:inline">{user.displayName || user.email}</span>
+            <button onClick={() => logout()} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100">Logout</button>
+          </div>
+        ) : (
+          <button onClick={() => loginWithGoogle()} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100">Login</button>
+        )
+      ) : (
+        <button disabled className="px-3 py-1.5 rounded-md text-sm border border-gray-200 text-[#666666]">Login (cfg required)</button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#FFFFFF] text-[#222222] flex flex-col items-center px-4 py-8">
+      <div className="w-full max-w-4xl space-y-4">
+        <TitleBar title={title} right={rightLogin} />
+        <StatsBar
+          signs={typed.length}
+          progress={(typed.length / Math.max(1, text.length)) * 100}
+          wpm={wpm}
+          errors={incorrectChars}
+          accuracy={accuracy}
+          timeLeft={timeLeft}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            <Metrics wpm={netWpm} accuracy={accPct} timeLeft={timeLeft} />
+            {/* Typing area is now the main focus; stats are unified above */}
             <section className="space-y-4">
               <TypingArea
                 text={text}
@@ -242,27 +229,72 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                 onType={handleType}
               />
               {status === 'pending' && (
-                <p className="text-slate-400 text-sm">Start typing to begin the test.</p>
+                <p className="text-[#666666] text-sm">Start typing to begin the test.</p>
               )}
+              {/* Settings & Actions Bar */}
+              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs uppercase tracking-wide text-[#666666] mr-1">Mode</span>
+                  {([
+                    { id: 'quote', label: 'Quotes' },
+                    { id: 'words', label: 'Words' },
+                    { id: 'chars', label: 'Characters' },
+                  ] as const).map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => { if (status !== 'running') {
+                        const id = m.id as Mode;
+                        setMode(id);
+                        if (id === 'quote') setText(pickQuote());
+                        if (id === 'words') setText(generateWordPracticeText());
+                        if (id === 'chars') setText(generateCharPracticeText(charSet));
+                        setTyped(''); setLessonResult({});
+                      }}}
+                      className={`px-3 py-1.5 rounded-md text-sm border ${
+                        mode === m.id ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                      } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                    >{m.label}</button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs uppercase tracking-wide text-[#666666] mr-1">Time</span>
+                  {DURATION_OPTIONS.map(d => (
+                    <button
+                      key={d}
+                      onClick={() => changeDuration(d)}
+                      className={`px-3 py-1.5 rounded-md text-sm border ${
+                        duration === d ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                      } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                    >
+                      {d}s
+                    </button>
+                  ))}
+                  <button
+                    title="Restart"
+                    onClick={restart}
+                    className="ml-1 px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100"
+                  >↻</button>
+                </div>
+              </div>
               <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch {} }} />
             </section>
           </div>
           <div className="space-y-4">
             {mode === 'chars' && (
-              <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4 w-full">
-                <label className="block text-xs uppercase tracking-wide text-slate-400 mb-1">Character group</label>
+              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 w-full">
+                <label className="block text-xs uppercase tracking-wide text-[#666666] mb-1">Character group</label>
                 <div className="flex items-center gap-2">
                   <input
                     value={charSet}
                     disabled={status === 'running'}
                     onChange={(e) => setCharSet(e.target.value)}
                     placeholder="e.g. asdfg"
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-md px-2 py-1 text-sm outline-none focus:border-sky-600"
+                    className="flex-1 bg-white border border-gray-300 rounded-md px-2 py-1 text-sm outline-none focus:border-[#007BFF]"
                   />
                   <button
                     disabled={status === 'running'}
                     onClick={() => { if (status !== 'running') { setText(generateCharPracticeText(charSet)); setTyped(''); } }}
-                    className="px-3 py-1.5 rounded-md text-sm border border-slate-700 hover:bg-slate-800 disabled:opacity-60"
+                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100 disabled:opacity-60"
                   >Apply</button>
                 </div>
               </div>

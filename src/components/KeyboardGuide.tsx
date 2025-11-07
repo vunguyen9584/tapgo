@@ -54,45 +54,42 @@
    thumb: 'bg-emerald-600/30 border-emerald-500/50'
  };
 
- export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
+export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
    const norm = normalize(activeChar);
    const activeKey = norm;
    const activeFinger: Finger | undefined = norm ? fingerForKey(norm) : undefined;
 
-   return (
-     <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4">
+  return (
+    <div className="classic-panel p-3 sm:p-4">
        <div className="flex items-center justify-between mb-2">
-         <div className="text-xs uppercase tracking-wide text-slate-400">Keyboard & Hands</div>
-         <button onClick={onToggle} className="text-xs px-2 py-1 rounded-md border border-slate-700 hover:bg-slate-800">
+        <div className="text-xs uppercase tracking-wide text-[#666666]">Keyboard & Hands</div>
+        <button onClick={onToggle} className="text-xs px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-100">
            {show ? 'Hide' : 'Show'}
          </button>
        </div>
        {show && (
-         <div className="space-y-4">
-           <div className="space-y-1">
-             {keyRows.map((row, idx) => (
-               <div key={idx} className="flex justify-center gap-1">
-                 {row.map((k) => {
-                   const f = fingerForKey(k);
-                   const isActive = activeKey === k;
-                   return (
-                     <div
-                       key={k}
-                       className={`px-2 py-2 rounded-md border text-sm font-mono ${fingerBg[f]} ${isActive ? 'ring-2 ring-sky-400' : ''}`}
-                     >{k}</div>
-                   );
-                 })}
-               </div>
-             ))}
-             <div className="flex justify-center mt-2">
-               <div className={`w-64 h-8 rounded-md border ${fingerBg['thumb']} ${activeKey==='space' ? 'ring-2 ring-sky-400' : ''}`}></div>
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <Hand side="left" active={activeFinger} />
-             <Hand side="right" active={activeFinger} />
-           </div>
-         </div>
+        <div className="flex items-start gap-3">
+          <Hand side="left" active={activeFinger} />
+          <div className="space-y-1 flex-1">
+            {keyRows.map((row, idx) => (
+              <div key={idx} className="flex justify-center gap-1">
+                {row.map((k) => {
+                  const isActive = activeKey === k;
+                  return (
+                    <div
+                      key={k}
+                      className={`keycap ${isActive ? 'keycap-active' : ''}`}
+                    >{k}</div>
+                  );
+                })}
+              </div>
+            ))}
+            <div className="flex justify-center mt-2">
+              <div className={`w-64 h-8 keycap ${activeKey==='space' ? 'keycap-active' : ''}`}></div>
+            </div>
+          </div>
+          <Hand side="right" active={activeFinger} />
+        </div>
        )}
      </div>
    );
@@ -101,12 +98,18 @@
  function Hand({ side, active }: { side: 'left' | 'right'; active?: Finger }) {
    const order: Finger[] = side === 'left' ? ['lp','lr','lm','li','thumb'] : ['thumb','ri','rm','rr','rp'];
    return (
-     <div className="bg-slate-950/50 border border-slate-800 rounded-lg p-3 flex items-end justify-center gap-1">
-      {order.map((f) => {
-        const base = `h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border`;
-        const cls = active===f ? 'bg-sky-500/60 border-sky-400 ring-2 ring-sky-400' : fingerBg[f];
-        return <div key={f} className={`${base} ${cls}`}></div>;
-      })}
+     <div className="classic-panel p-2 flex flex-nowrap items-end justify-center gap-1 shrink-0">
+       {order.map((f) => {
+         const base = `relative h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border bg-white border-gray-300 flex-none`;
+         const isActive = active===f;
+         return (
+           <div key={f} className={base}>
+             {isActive && (
+               <span className="absolute top-0 right-0 w-3 h-3 bg-[#00FF00] rounded-full translate-x-1/2 -translate-y-1/2"></span>
+             )}
+           </div>
+         );
+       })}
      </div>
    );
  }

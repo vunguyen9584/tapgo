@@ -1,6 +1,6 @@
 export type AppStatus = 'pending' | 'running' | 'finished';
 
-export type Mode = 'quote' | 'chars' | 'lesson';
+export type Mode = 'quote' | 'words' | 'chars' | 'lesson';
 
 export type Lesson = {
   id: string;

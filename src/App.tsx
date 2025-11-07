@@ -1,4 +1,4 @@
- import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TypingArea from './components/TypingArea';
 import StatsBar from './components/StatsBar';
 import Results from './components/Results';
@@ -9,20 +9,20 @@ import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
 import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
 import { useI18n } from './lib/i18n';
- import './styles/styles.css';
+import './styles/styles.css';
 
- export default function App() {
+export default function App() {
   const { t, locale, setLocale } = useI18n();
-   const [text, setText] = useState<string>(pickQuote());
-   const [typed, setTyped] = useState<string>('');
-   const [status, setStatus] = useState<AppStatus>('pending');
-   const [duration, setDuration] = useState<number>(60);
-   const [timeLeft, setTimeLeft] = useState<number>(60);
-   const [wpm, setWpm] = useState<number>(0);
-   const [accuracy, setAccuracy] = useState<number>(100);
-   const [wpmHistory, setWpmHistory] = useState<number[]>([]);
-   const [correctChars, setCorrectChars] = useState<number>(0);
-   const [incorrectChars, setIncorrectChars] = useState<number>(0);
+  const [text, setText] = useState<string>(pickQuote());
+  const [typed, setTyped] = useState<string>('');
+  const [status, setStatus] = useState<AppStatus>('pending');
+  const [duration, setDuration] = useState<number>(60);
+  const [timeLeft, setTimeLeft] = useState<number>(60);
+  const [wpm, setWpm] = useState<number>(0);
+  const [accuracy, setAccuracy] = useState<number>(100);
+  const [wpmHistory, setWpmHistory] = useState<number[]>([]);
+  const [correctChars, setCorrectChars] = useState<number>(0);
+  const [incorrectChars, setIncorrectChars] = useState<number>(0);
   const [mode, setMode] = useState<Mode>('quote');
   const [charSet, setCharSet] = useState<string>('asdfg');
   const [selectedLessonId, setSelectedLessonId] = useState<string | undefined>(undefined);
@@ -36,20 +36,20 @@ import { useI18n } from './lib/i18n';
     try { const v = localStorage.getItem('km_showGuide'); return v ? JSON.parse(v) : true; } catch { return true; }
   });
 
-   const startTimeRef = useRef<number | null>(null);
-   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
-   const typedRef = useRef<string>('');
-   typedRef.current = typed;
+  const startTimeRef = useRef<number | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const typedRef = useRef<string>('');
+  typedRef.current = typed;
 
-   useEffect(() => {
-     const { correct, incorrect } = computeCorrectIncorrect(typed, text);
-     setCorrectChars(correct);
-     setIncorrectChars(incorrect);
-     if (status === 'running') {
-       const totalTyped = typed.length;
-       setAccuracy(totalTyped > 0 ? (correct / totalTyped) * 100 : 100);
-     }
-   }, [typed, text, status]);
+  useEffect(() => {
+    const { correct, incorrect } = computeCorrectIncorrect(typed, text);
+    setCorrectChars(correct);
+    setIncorrectChars(incorrect);
+    if (status === 'running') {
+      const totalTyped = typed.length;
+      setAccuracy(totalTyped > 0 ? (correct / totalTyped) * 100 : 100);
+    }
+  }, [typed, text, status]);
 
   // Recompute duration based on text length at 10 WPM whenever text changes (when not running)
   useEffect(() => {
@@ -76,31 +76,31 @@ import { useI18n } from './lib/i18n';
     return () => { unsub && unsub(); };
   }, []);
 
-   useEffect(() => {
-     if (status !== 'running') return;
-     const start = startTimeRef.current ?? Date.now();
-     startTimeRef.current = start;
-     setTimeLeft(duration);
+  useEffect(() => {
+    if (status !== 'running') return;
+    const start = startTimeRef.current ?? Date.now();
+    startTimeRef.current = start;
+    setTimeLeft(duration);
 
-     tickRef.current = setInterval(() => {
-       const now = Date.now();
-       const elapsedSec = Math.floor((now - start) / 1000);
-       const remaining = Math.max(0, duration - elapsedSec);
-       setTimeLeft(remaining);
+    tickRef.current = setInterval(() => {
+      const now = Date.now();
+      const elapsedSec = Math.floor((now - start) / 1000);
+      const remaining = Math.max(0, duration - elapsedSec);
+      setTimeLeft(remaining);
 
-       const minutes = (now - start) / 60000;
-       const { correct } = computeCorrectIncorrect(typedRef.current, text);
-       const currentWpm = minutes > 0 ? (correct / 5) / minutes : 0;
-       setWpm(currentWpm);
-       setWpmHistory(prev => [...prev, currentWpm]);
-       const totalTyped = typedRef.current.length;
-       setAccuracy(totalTyped > 0 ? (correct / totalTyped) * 100 : 100);
+      const minutes = (now - start) / 60000;
+      const { correct } = computeCorrectIncorrect(typedRef.current, text);
+      const currentWpm = minutes > 0 ? (correct / 5) / minutes : 0;
+      setWpm(currentWpm);
+      setWpmHistory(prev => [...prev, currentWpm]);
+      const totalTyped = typedRef.current.length;
+      setAccuracy(totalTyped > 0 ? (correct / totalTyped) * 100 : 100);
 
-       if (remaining <= 0) finish('timeout');
-     }, 1000);
+      if (remaining <= 0) finish('timeout');
+    }, 1000);
 
-     return () => { if (tickRef.current) clearInterval(tickRef.current); tickRef.current = null; };
-   }, [status, duration, text]);
+    return () => { if (tickRef.current) clearInterval(tickRef.current); tickRef.current = null; };
+  }, [status, duration, text]);
 
   function cumulativeChars(uptoId: string): string {
     const idx = LESSONS.findIndex(l => l.id === uptoId);
@@ -108,24 +108,24 @@ import { useI18n } from './lib/i18n';
     return slice.map(l => l.chars).join('');
   }
 
-   function start() {
-     if (status !== 'pending') return;
-     setStatus('running');
-     startTimeRef.current = Date.now();
-     setWpmHistory([]);
-     setFinishReason('none');
-   }
+  function start() {
+    if (status !== 'pending') return;
+    setStatus('running');
+    startTimeRef.current = Date.now();
+    setWpmHistory([]);
+    setFinishReason('none');
+  }
 
-   function finish(reason: 'completed' | 'timeout' = 'completed') {
-     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
-     setStatus('finished');
-     setTimeLeft(0);
-     const now = Date.now();
-     const minutes = startTimeRef.current ? (now - startTimeRef.current) / 60000 : duration / 60;
-     const { correct } = computeCorrectIncorrect(typedRef.current, text);
+  function finish(reason: 'completed' | 'timeout' = 'completed') {
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+    setStatus('finished');
+    setTimeLeft(0);
+    const now = Date.now();
+    const minutes = startTimeRef.current ? (now - startTimeRef.current) / 60000 : duration / 60;
+    const { correct } = computeCorrectIncorrect(typedRef.current, text);
     const finalWpm = minutes > 0 ? (correct / 5) / minutes : 0;
     setWpm(finalWpm);
-     const totalTyped = typedRef.current.length;
+    const totalTyped = typedRef.current.length;
     const finalAcc = totalTyped > 0 ? (correct / totalTyped) * 100 : 100;
     setAccuracy(finalAcc);
     setFinishReason(reason);
@@ -138,19 +138,21 @@ import { useI18n } from './lib/i18n';
         setLessonResult(isExam ? { label: lesson.label, passed } : {});
         if (isExam) {
           setLessonsProgress(prev => {
-            const next = { ...prev, [lesson.id]: {
-              completed: prev[lesson.id]?.completed || passed,
-              bestWpm: Math.max(prev[lesson.id]?.bestWpm || 0, Math.round(finalWpm)),
-              bestAccuracy: Math.max(prev[lesson.id]?.bestAccuracy || 0, Math.round(finalAcc)),
-              lastAt: Date.now(),
-            }};
+            const next = {
+              ...prev, [lesson.id]: {
+                completed: prev[lesson.id]?.completed || passed,
+                bestWpm: Math.max(prev[lesson.id]?.bestWpm || 0, Math.round(finalWpm)),
+                bestAccuracy: Math.max(prev[lesson.id]?.bestAccuracy || 0, Math.round(finalAcc)),
+                lastAt: Date.now(),
+              }
+            };
             try {
               if (user && firebaseEnabled) {
                 saveProgress(user.uid, next);
               } else {
                 localStorage.setItem('km_lessons', JSON.stringify(next));
               }
-            } catch {}
+            } catch { }
             return next;
           });
         }
@@ -158,33 +160,33 @@ import { useI18n } from './lib/i18n';
     } else if (reason === 'completed') {
       setLessonResult({});
     }
-   }
+  }
 
-   function handleType(nextTyped: string) {
-     if (status === 'pending' && nextTyped.length > 0) start();
-     if (nextTyped.length >= text.length) {
-       setTyped(nextTyped.slice(0, text.length));
-       setTimeout(() => finish('completed'), 0);
-       return;
-     }
-     setTyped(nextTyped);
-   }
+  function handleType(nextTyped: string) {
+    if (status === 'pending' && nextTyped.length > 0) start();
+    if (nextTyped.length >= text.length) {
+      setTyped(nextTyped.slice(0, text.length));
+      setTimeout(() => finish('completed'), 0);
+      return;
+    }
+    setTyped(nextTyped);
+  }
 
   function restartSame() {
-     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
     // keep the same text
-     setTyped('');
-     startTimeRef.current = null;
-     setStatus('pending');
-     setFinishReason('none');
-     setTimeLeft(duration);
-     setWpm(0);
-     setAccuracy(100);
-     setWpmHistory([]);
-     setCorrectChars(0);
-     setIncorrectChars(0);
+    setTyped('');
+    startTimeRef.current = null;
+    setStatus('pending');
+    setFinishReason('none');
+    setTimeLeft(duration);
+    setWpm(0);
+    setAccuracy(100);
+    setWpmHistory([]);
+    setCorrectChars(0);
+    setIncorrectChars(0);
     setLessonResult({});
-   }
+  }
 
   function restartNewText() {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
@@ -192,10 +194,10 @@ import { useI18n } from './lib/i18n';
     const nextText = mode === 'quote'
       ? pickQuote()
       : mode === 'words'
-      ? generateWordPracticeText()
-      : mode === 'chars'
-      ? generateCharPracticeText(charSet)
-      : generateCharPracticeText(lesson?.chars || 'asdf');
+        ? generateWordPracticeText()
+        : mode === 'chars'
+          ? generateCharPracticeText(charSet)
+          : generateCharPracticeText(lesson?.chars || 'asdf');
     setText(nextText);
     setTyped('');
     startTimeRef.current = null;
@@ -228,16 +230,16 @@ import { useI18n } from './lib/i18n';
 
   // Duration is auto-computed from text; no manual changeDuration UI
 
-   const netWpm = Math.round(wpm);
-   const accPct = Math.round(accuracy);
+  const netWpm = Math.round(wpm);
+  const accPct = Math.round(accuracy);
   const selectedLesson = LESSONS.find(l => l.id === selectedLessonId);
   const activeChar = status === 'finished' ? undefined : text[typed.length];
 
   const title = mode === 'lesson'
     ? `${selectedLesson?.label ?? 'Lesson'}`
     : mode === 'chars'
-    ? t('customCharacters')
-    : t('typingTestTitle');
+      ? t('customCharacters')
+      : t('typingTestTitle');
 
   const rightLogin = (
     <div className="flex items-center gap-2">
@@ -299,53 +301,50 @@ import { useI18n } from './lib/i18n';
                         {examPassed && <span className="text-[#28A745] text-xs">✓ {t('passed')}</span>}
                       </button>
                       {isSelected && (
-                      <div className="px-2 pb-2 grid grid-cols-1 gap-1">
-                        <button
-                          disabled={status === 'running'}
-                          onClick={() => {
-                            if (status === 'running') return;
-                            setMode('lesson');
-                            setSelectedLessonId(l.id);
-                            setLessonVariant('new');
-                            setText(generateCharPracticeText(l.chars));
-                            setTyped('');
-                            setLessonResult({});
-                          }}
-                          className={`text-left px-2 py-1 rounded-md border text-xs ${
-                            isSelected && lessonVariant === 'new' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                          } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                        >{t('newKeysPractice')}</button>
-                        <button
-                          disabled={status === 'running'}
-                          onClick={() => {
-                            if (status === 'running') return;
-                            setMode('lesson');
-                            setSelectedLessonId(l.id);
-                            setLessonVariant('review');
-                            setText(generateCharPracticeText(cumulativeChars(l.id)));
-                            setTyped('');
-                            setLessonResult({});
-                          }}
-                          className={`text-left px-2 py-1 rounded-md border text-xs ${
-                            isSelected && lessonVariant === 'review' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                          } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                        >{t('reviewUpToNow')}</button>
-                        <button
-                          disabled={status === 'running'}
-                          onClick={() => {
-                            if (status === 'running') return;
-                            setMode('lesson');
-                            setSelectedLessonId(l.id);
-                            setLessonVariant('exam');
-                            setText(generateCharPracticeText(cumulativeChars(l.id)));
-                            setTyped('');
-                            setLessonResult({});
-                          }}
-                          className={`text-left px-2 py-1 rounded-md border text-xs ${
-                            isSelected && lessonVariant === 'exam' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                          } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                        >{t('finalExam')}</button>
-                      </div>
+                        <div className="px-2 pb-2 grid grid-cols-1 gap-1">
+                          <button
+                            disabled={status === 'running'}
+                            onClick={() => {
+                              if (status === 'running') return;
+                              setMode('lesson');
+                              setSelectedLessonId(l.id);
+                              setLessonVariant('new');
+                              setText(generateCharPracticeText(l.chars));
+                              setTyped('');
+                              setLessonResult({});
+                            }}
+                            className={`text-left px-2 py-1 rounded-md border text-xs ${isSelected && lessonVariant === 'new' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                              } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                          >{t('newKeysPractice')}</button>
+                          <button
+                            disabled={status === 'running'}
+                            onClick={() => {
+                              if (status === 'running') return;
+                              setMode('lesson');
+                              setSelectedLessonId(l.id);
+                              setLessonVariant('review');
+                              setText(generateCharPracticeText(cumulativeChars(l.id)));
+                              setTyped('');
+                              setLessonResult({});
+                            }}
+                            className={`text-left px-2 py-1 rounded-md border text-xs ${isSelected && lessonVariant === 'review' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                              } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                          >{t('reviewUpToNow')}</button>
+                          <button
+                            disabled={status === 'running'}
+                            onClick={() => {
+                              if (status === 'running') return;
+                              setMode('lesson');
+                              setSelectedLessonId(l.id);
+                              setLessonVariant('exam');
+                              setText(generateCharPracticeText(cumulativeChars(l.id)));
+                              setTyped('');
+                              setLessonResult({});
+                            }}
+                            className={`text-left px-2 py-1 rounded-md border text-xs ${isSelected && lessonVariant === 'exam' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                              } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                          >{t('finalExam')}</button>
+                        </div>
                       )}
                     </div>
                   );
@@ -357,16 +356,14 @@ import { useI18n } from './lib/i18n';
                 <button
                   disabled={status === 'running'}
                   onClick={() => { if (status !== 'running') { setMode('chars'); setText(generateCharPracticeText(charSet)); setTyped(''); setLessonResult({}); } }}
-                  className={`text-left px-3 py-1.5 rounded-md border text-sm ${
-                    mode === 'chars' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                  } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                  className={`text-left px-3 py-1.5 rounded-md border text-sm ${mode === 'chars' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                    } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
                 >{t('customCharacters')}</button>
                 <button
                   disabled={status === 'running'}
                   onClick={() => { if (status !== 'running') { setMode('quote'); setText(pickQuote()); setTyped(''); setLessonResult({}); } }}
-                  className={`text-left px-3 py-1.5 rounded-md border text-sm ${
-                    mode === 'quote' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                  } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                  className={`text-left px-3 py-1.5 rounded-md border text-sm ${mode === 'quote' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                    } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
                 >{t('typingTestTitle')}</button>
               </div>
             </div>
@@ -420,40 +417,40 @@ import { useI18n } from './lib/i18n';
                   </div>
                 </div>
               )}
-              <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch {} }} />
+              <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch { } }} />
             </section>
           </div>
-          
+
         </div>
 
-       </div>
+      </div>
 
-       <Results
-         open={status === 'finished' && finishReason === 'completed'}
-         onClose={restartNewText}
-         wpm={Math.max(0, Math.round(wpm))}
-         accuracy={accPct}
-         correct={correctChars}
-         incorrect={incorrectChars}
-         wpmHistory={wpmHistory}
-         duration={duration}
+      <Results
+        open={status === 'finished' && finishReason === 'completed'}
+        onClose={restartNewText}
+        wpm={Math.max(0, Math.round(wpm))}
+        accuracy={accPct}
+        correct={correctChars}
+        incorrect={incorrectChars}
+        wpmHistory={wpmHistory}
+        duration={duration}
         lessonLabel={mode === 'lesson' && lessonVariant === 'exam' ? selectedLesson?.label : undefined}
         lessonPassed={mode === 'lesson' && lessonVariant === 'exam' ? lessonResult.passed : undefined}
-       />
+      />
 
-       {/* Timeout popup */}
-       {status === 'finished' && finishReason === 'timeout' && (
-         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-           <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-6 text-[#222222]">
-             <h2 className="text-xl font-semibold mb-2">{t('timeIsUp')}</h2>
-             <p className="text-[#666666] mb-6">{t('timeUpMsg')}</p>
-             <div className="flex justify-end gap-2">
-               <button onClick={goHome} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">{t('home')}</button>
-               <button onClick={restartSame} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">{t('restart')}</button>
-             </div>
-           </div>
-         </div>
-       )}
-     </div>
-   );
- }
+      {/* Timeout popup */}
+      {status === 'finished' && finishReason === 'timeout' && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-6 text-[#222222]">
+            <h2 className="text-xl font-semibold mb-2">{t('timeIsUp')}</h2>
+            <p className="text-[#666666] mb-6">{t('timeUpMsg')}</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={goHome} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">{t('home')}</button>
+              <button onClick={restartSame} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">{t('restart')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

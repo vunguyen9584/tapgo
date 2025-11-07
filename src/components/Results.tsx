@@ -60,7 +60,7 @@ export default function Results({ open, onRetry, onNextLesson, wpm, accuracy, co
         )}
         {lessonLabel && lessonPassed === false && minExamWpm ? (
           <div className="mb-4 text-sm text-[#666666]">
-            Bạn chưa đạt đủ số WPM tối thiểu (yêu cầu ≥{minExamWpm} WPM). Bạn có thể thay đổi WPM này trong mục "Thiết lập".
+            {t('failReasonNotEnoughWpmPrefix')}{minExamWpm}{t('failReasonNotEnoughWpmSuffix')}
           </div>
         ) : null}
          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -83,7 +83,7 @@ export default function Results({ open, onRetry, onNextLesson, wpm, accuracy, co
              <>
                <button onClick={onRetry} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">{t('restart')}</button>
                {onNextLesson && (
-                 <button onClick={onNextLesson} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">Chuyển sang bài kế tiếp</button>
+                 <button onClick={onNextLesson} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">{t('nextLesson')}</button>
                )}
              </>
            ) : (

@@ -237,8 +237,12 @@ export default function App() {
   const selectedLesson = LESSONS.find(l => l.id === selectedLessonId);
   const activeChar = status === 'finished' ? undefined : text[typed.length];
 
+  const lessonTitle = selectedLesson
+    ? (locale === 'vi' ? `Bài ${selectedLesson.id.replace('lesson-','')}` : selectedLesson.label)
+    : (locale === 'vi' ? t('lesson') : 'Lesson');
+
   const title = mode === 'lesson'
-    ? `${selectedLesson?.label ?? 'Lesson'}`
+    ? lessonTitle
     : mode === 'chars'
       ? t('customCharacters')
       : t('typingTestTitle');
@@ -318,7 +322,7 @@ export default function App() {
                         disabled={status === 'running'}
                       >
                         <div className="text-left">
-                          <div className="text-sm font-medium text-[#222222]">{l.label}</div>
+                          <div className="text-sm font-medium text-[#222222]">{locale === 'vi' ? `Bài ${l.id.replace('lesson-','')}` : l.label}</div>
                           <div className="text-xs text-[#666666]">{t('newKeys')}: {l.chars}</div>
                         </div>
                         {examPassed && <span className="text-[#28A745] text-xs">✓ {t('passed')}</span>}

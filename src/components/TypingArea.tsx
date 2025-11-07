@@ -45,10 +45,15 @@ export default function TypingArea({ text, typed, status, onType, actions }: Pro
       <div className="classic-panel p-4 sm:p-6">
         <div className="font-mono text-lg sm:text-2xl leading-8 sm:leading-9 whitespace-pre-wrap break-words">
           {text.split('').map((ch, i) => {
+            const typedCh = i < caret ? typed[i] : undefined;
             let cls = 'text-[#222222]';
-            if (i < caret) cls = 'text-[#666666]';
-            else if (i >= start && i < end) cls = 'text-[#0000FF] underline';
-            return <span key={i} className={cls}>{ch}</span>;
+            if (i < caret) {
+              cls = typedCh === ch ? 'text-[#666666]' : 'text-[#DC3545]';
+            } else if (i >= start && i < end) {
+              cls = 'text-[#0000FF] underline';
+            }
+            const display = ch === ' ' ? '␣' : ch;
+            return <span key={i} className={cls}>{display}</span>;
           })}
         </div>
         {actions && (

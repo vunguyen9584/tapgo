@@ -28,7 +28,7 @@ export async function loginWithGoogle() {
   return res.user;
 }
 
-export async function logoutWithGoogle() {
+export async function logout() {
   if (!auth) return;
   await signOut(auth);
 }

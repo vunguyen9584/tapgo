@@ -4,7 +4,7 @@ import StatsBar from './components/StatsBar';
 import Results from './components/Results';
 import KeyboardGuide from './components/KeyboardGuide';
 import TitleBar from './components/TitleBar';
-import { computeCorrectIncorrect, pickQuote, DURATION_OPTIONS, generateCharPracticeText, generateWordPracticeText } from './utils/text';
+import { computeCorrectIncorrect, pickQuote, generateCharPracticeText, generateWordPracticeText } from './utils/text';
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
 import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
@@ -27,6 +27,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
   const [lessonsProgress, setLessonsProgress] = useState<LessonsProgressMap>({});
   const [user, setUser] = useState<import('firebase/auth').User | null>(null);
   const [lessonResult, setLessonResult] = useState<{ label?: string; passed?: boolean }>({});
+  const [finishReason, setFinishReason] = useState<'none' | 'completed' | 'timeout'>('none');
   const [showGuide, setShowGuide] = useState<boolean>(() => {
     try { const v = localStorage.getItem('km_showGuide'); return v ? JSON.parse(v) : true; } catch { return true; }
   });
@@ -45,6 +46,14 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
        setAccuracy(totalTyped > 0 ? (correct / totalTyped) * 100 : 100);
      }
    }, [typed, text, status]);
+
+  // Recompute duration based on text length at 10 WPM whenever text changes (when not running)
+  useEffect(() => {
+    if (status === 'running') return;
+    const seconds = Math.max(1, Math.ceil((text.length / 50) * 60)); // 10 wpm = 50 chars/min
+    setDuration(seconds);
+    setTimeLeft(seconds);
+  }, [text, status]);
 
   useEffect(() => {
     const unsub = onUserChange(async (u) => {
@@ -83,7 +92,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
        const totalTyped = typedRef.current.length;
        setAccuracy(totalTyped > 0 ? (correct / totalTyped) * 100 : 100);
 
-       if (remaining <= 0) finish();
+       if (remaining <= 0) finish('timeout');
      }, 1000);
 
      return () => { if (tickRef.current) clearInterval(tickRef.current); tickRef.current = null; };
@@ -94,9 +103,10 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
      setStatus('running');
      startTimeRef.current = Date.now();
      setWpmHistory([]);
+     setFinishReason('none');
    }
 
-   function finish() {
+   function finish(reason: 'completed' | 'timeout' = 'completed') {
      if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
      setStatus('finished');
      setTimeLeft(0);
@@ -108,8 +118,9 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
      const totalTyped = typedRef.current.length;
     const finalAcc = totalTyped > 0 ? (correct / totalTyped) * 100 : 100;
     setAccuracy(finalAcc);
+    setFinishReason(reason);
 
-    if (mode === 'lesson' && selectedLessonId) {
+    if (reason === 'completed' && mode === 'lesson' && selectedLessonId) {
       const lesson: Lesson | undefined = LESSONS.find(l => l.id === selectedLessonId);
       if (lesson) {
         const passed = finalWpm >= lesson.wpmThreshold && finalAcc >= lesson.accuracyThreshold;
@@ -131,7 +142,7 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
           return next;
         });
       }
-    } else {
+    } else if (reason === 'completed') {
       setLessonResult({});
     }
    }
@@ -140,26 +151,19 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
      if (status === 'pending' && nextTyped.length > 0) start();
      if (nextTyped.length >= text.length) {
        setTyped(nextTyped.slice(0, text.length));
-       setTimeout(finish, 0);
+       setTimeout(() => finish('completed'), 0);
        return;
      }
      setTyped(nextTyped);
    }
 
-  function restart() {
+  function restartSame() {
      if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
-    const lesson = LESSONS.find(l => l.id === selectedLessonId);
-    const nextText = mode === 'quote'
-      ? pickQuote()
-      : mode === 'words'
-      ? generateWordPracticeText()
-      : mode === 'chars'
-      ? generateCharPracticeText(charSet)
-      : generateCharPracticeText(lesson?.chars || 'asdf');
-    setText(nextText);
+    // keep the same text
      setTyped('');
      startTimeRef.current = null;
      setStatus('pending');
+     setFinishReason('none');
      setTimeLeft(duration);
      setWpm(0);
      setAccuracy(100);
@@ -169,11 +173,47 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
     setLessonResult({});
    }
 
-   function changeDuration(d: number) {
-     if (status === 'running') return;
-     setDuration(d);
-     setTimeLeft(d);
-   }
+  function restartNewText() {
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+    const lesson = LESSONS.find(l => l.id === selectedLessonId);
+    const nextText = mode === 'quote'
+      ? pickQuote()
+      : mode === 'words'
+      ? generateWordPracticeText()
+      : mode === 'chars'
+      ? generateCharPracticeText(charSet)
+      : generateCharPracticeText(lesson?.chars || 'asdf');
+    setText(nextText);
+    setTyped('');
+    startTimeRef.current = null;
+    setStatus('pending');
+    setFinishReason('none');
+    setTimeLeft(duration);
+    setWpm(0);
+    setAccuracy(100);
+    setWpmHistory([]);
+    setCorrectChars(0);
+    setIncorrectChars(0);
+    setLessonResult({});
+  }
+
+  function goHome() {
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+    setMode('quote');
+    setText(pickQuote());
+    setTyped('');
+    startTimeRef.current = null;
+    setStatus('pending');
+    setFinishReason('none');
+    setWpm(0);
+    setAccuracy(100);
+    setWpmHistory([]);
+    setCorrectChars(0);
+    setIncorrectChars(0);
+    setLessonResult({});
+  }
+
+  // Duration is auto-computed from text; no manual changeDuration UI
 
    const netWpm = Math.round(wpm);
    const accPct = Math.round(accuracy);
@@ -271,32 +311,25 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                 typed={typed}
                 status={status}
                 onType={handleType}
+                actions={
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      title="Restart"
+                      onClick={restartSame}
+                      className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100"
+                    >Restart</button>
+                    <button
+                      title="New text"
+                      onClick={restartNewText}
+                      className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100"
+                    >New text</button>
+                  </div>
+                }
               />
               {status === 'pending' && (
                 <p className="text-[#666666] text-sm">Start typing to begin the test.</p>
               )}
-              {/* Settings & Actions Bar */}
-              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs uppercase tracking-wide text-[#666666] mr-1">Time</span>
-                  {DURATION_OPTIONS.map(d => (
-                    <button
-                      key={d}
-                      onClick={() => changeDuration(d)}
-                      className={`px-3 py-1.5 rounded-md text-sm border ${
-                        duration === d ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                      } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                    >
-                      {d}s
-                    </button>
-                  ))}
-                  <button
-                    title="Restart"
-                    onClick={restart}
-                    className="ml-1 px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100"
-                  >↻</button>
-                </div>
-              </div>
+              {/* Removed time selection; duration auto-computed at 10 WPM */}
 
               {mode === 'chars' && (
                 <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 w-full">
@@ -326,8 +359,8 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
        </div>
 
        <Results
-         open={status === 'finished'}
-         onClose={restart}
+         open={status === 'finished' && finishReason === 'completed'}
+         onClose={restartNewText}
          wpm={Math.max(0, Math.round(wpm))}
          accuracy={accPct}
          correct={correctChars}
@@ -337,6 +370,20 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
         lessonLabel={mode === 'lesson' ? selectedLesson?.label : undefined}
         lessonPassed={mode === 'lesson' ? lessonResult.passed : undefined}
        />
+
+       {/* Timeout popup */}
+       {status === 'finished' && finishReason === 'timeout' && (
+         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+           <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-6 text-[#222222]">
+             <h2 className="text-xl font-semibold mb-2">Time is up</h2>
+             <p className="text-[#666666] mb-6">You have run out of time for this text.</p>
+             <div className="flex justify-end gap-2">
+               <button onClick={goHome} className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100">Home</button>
+               <button onClick={restartSame} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90">Restart</button>
+             </div>
+           </div>
+         </div>
+       )}
      </div>
    );
  }

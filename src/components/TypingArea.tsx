@@ -6,9 +6,10 @@ type Props = {
   typed: string;
   status: AppStatus;
   onType: (value: string) => void;
+  actions?: React.ReactNode;
 };
 
-export default function TypingArea({ text, typed, status, onType }: Props) {
+export default function TypingArea({ text, typed, status, onType, actions }: Props) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -48,6 +49,11 @@ export default function TypingArea({ text, typed, status, onType }: Props) {
             return <span key={i} className={cls}>{ch}</span>;
           })}
         </div>
+        {actions && (
+          <div className="mt-4">
+            {actions}
+          </div>
+        )}
       </div>
       <div className="classic-panel p-3">
         <textarea

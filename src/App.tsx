@@ -4,7 +4,7 @@ import StatsBar from './components/StatsBar';
 import Results from './components/Results';
 import KeyboardGuide from './components/KeyboardGuide';
 import TitleBar from './components/TitleBar';
-import { computeCorrectIncorrect, pickQuote, generateCharPracticeText, generateWordPracticeText } from './utils/text';
+import { computeCorrectIncorrect, generateCharPracticeText, generateWordPracticeText, generateTypingTestText } from './utils/text';
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
 import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
@@ -13,7 +13,7 @@ import './styles/styles.css';
 
 export default function App() {
   const { t, locale, setLocale } = useI18n();
-  const [text, setText] = useState<string>(pickQuote());
+  const [text, setText] = useState<string>(() => generateTypingTestText({ lang: locale }));
   const [typed, setTyped] = useState<string>('');
   const [status, setStatus] = useState<AppStatus>('pending');
   const [duration, setDuration] = useState<number>(60);
@@ -192,7 +192,7 @@ export default function App() {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
     const lesson = LESSONS.find(l => l.id === selectedLessonId);
     const nextText = mode === 'quote'
-      ? pickQuote()
+      ? generateTypingTestText({ lang: locale })
       : mode === 'words'
         ? generateWordPracticeText()
         : mode === 'chars'
@@ -215,7 +215,7 @@ export default function App() {
   function goHome() {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
     setMode('quote');
-    setText(pickQuote());
+    setText(generateTypingTestText({ lang: locale }));
     setTyped('');
     startTimeRef.current = null;
     setStatus('pending');
@@ -361,7 +361,7 @@ export default function App() {
                 >{t('customCharacters')}</button>
                 <button
                   disabled={status === 'running'}
-                  onClick={() => { if (status !== 'running') { setMode('quote'); setText(pickQuote()); setTyped(''); setLessonResult({}); } }}
+                  onClick={() => { if (status !== 'running') { setMode('quote'); setText(generateTypingTestText({ lang: locale })); setTyped(''); setLessonResult({}); } }}
                   className={`text-left px-3 py-1.5 rounded-md border text-sm ${mode === 'quote' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
                     } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
                 >{t('typingTestTitle')}</button>

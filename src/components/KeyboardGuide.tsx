@@ -18,7 +18,17 @@
  function normalize(ch?: string): string | undefined {
    if (!ch) return undefined;
    if (ch === ' ') return 'space';
-   return ch.toLowerCase();
+   const map: Record<string, string> = {
+     '’': '\'',
+     '‘': '\'',
+     '“': '"',
+     '”': '"',
+     '–': '-',
+     '—': '-',
+     '…': '.',
+   };
+   const repl = map[ch] ?? ch;
+   return repl.toLowerCase();
  }
 
  function fingerForKey(k: string): Finger {
@@ -68,9 +78,12 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
          </button>
        </div>
        {show && (
-        <div className="flex items-start gap-3 overflow-x-auto">
-          <Hand side="left" active={activeFinger} />
-          <div className="space-y-1 flex-1 min-w-0">
+        <div className="grid grid-cols-1 sm:[grid-template-columns:auto_1fr_auto] items-start gap-3">
+          {/* Desktop/tablet: hands on the sides */}
+          <div className="hidden sm:block">
+            <Hand side="left" active={activeFinger} />
+          </div>
+          <div className="space-y-1 min-w-0">
             {keyRows.map((row, idx) => (
               <div key={idx} className="flex justify-center gap-1">
                 {row.map((k) => {
@@ -85,10 +98,18 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
               </div>
             ))}
             <div className="flex justify-center mt-2">
-              <div className={`w-64 h-8 keycap ${activeKey==='space' ? 'keycap-active' : ''}`}></div>
+              <div className={`w-48 sm:w-64 h-8 keycap ${activeKey==='space' ? 'keycap-active' : ''}`}></div>
             </div>
           </div>
-          <Hand side="right" active={activeFinger} />
+          <div className="hidden sm:block">
+            <Hand side="right" active={activeFinger} />
+          </div>
+
+          {/* Mobile: place both hands below the keyboard */}
+          <div className="sm:hidden col-span-1 flex items-end justify-center gap-3">
+            <Hand side="left" active={activeFinger} />
+            <Hand side="right" active={activeFinger} />
+          </div>
         </div>
        )}
      </div>
@@ -100,14 +121,14 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
    return (
     <div className="classic-panel p-2 flex flex-nowrap items-end justify-center gap-1 shrink-0 overflow-hidden">
        {order.map((f) => {
-         const base = `relative h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border bg-white border-gray-300 flex-none`;
+        const base = `relative h-10 ${f==='thumb' ? 'w-8' : 'w-6'} rounded-md border bg-white border-gray-300 flex-none transition-colors`;
          const isActive = active===f;
          return (
-           <div key={f} className={base}>
-             {isActive && (
-               <span className="absolute top-0 right-0 w-3 h-3 bg-[#00FF00] rounded-full translate-x-1/2 -translate-y-1/2"></span>
-             )}
-           </div>
+          <div key={f} className={`${base} ${isActive ? fingerBg[f] : ''}`}>
+            {isActive && (
+              <span className="absolute top-0 right-0 w-3 h-3 bg-[#00FF00] rounded-full translate-x-1/2 -translate-y-1/2"></span>
+            )}
+          </div>
          );
        })}
      </div>

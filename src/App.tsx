@@ -2,7 +2,6 @@
 import TypingArea from './components/TypingArea';
 import StatsBar from './components/StatsBar';
 import Results from './components/Results';
-import LessonPicker from './components/LessonPicker';
 import KeyboardGuide from './components/KeyboardGuide';
 import TitleBar from './components/TitleBar';
 import { computeCorrectIncorrect, pickQuote, DURATION_OPTIONS, generateCharPracticeText, generateWordPracticeText } from './utils/text';
@@ -182,12 +181,10 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
   const activeChar = status === 'finished' ? undefined : text[typed.length];
 
   const title = mode === 'lesson'
-    ? `New keys: ${selectedLesson?.label ?? ''}`
+    ? `${selectedLesson?.label ?? 'Lesson'}`
     : mode === 'chars'
-    ? 'Characters Practice'
-    : mode === 'words'
-    ? 'Words Practice'
-    : 'Quotes';
+    ? 'Custom Characters'
+    : 'Typing test';
 
   const rightLogin = (
     <div>
@@ -218,7 +215,54 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
           accuracy={accuracy}
           timeLeft={timeLeft}
         />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Side menu */}
+          <aside className="space-y-4 lg:col-span-1">
+            <div className="classic-panel p-3 sm:p-4">
+              <div className="text-xs uppercase tracking-wide text-[#666666] mb-2">Lessons</div>
+              <div className="flex flex-col gap-1">
+                {LESSONS.map((l) => (
+                  <button
+                    key={l.id}
+                    disabled={status === 'running'}
+                    onClick={() => {
+                      if (status === 'running') return;
+                      setMode('lesson');
+                      setSelectedLessonId(l.id);
+                      setText(generateCharPracticeText(l.chars));
+                      setTyped('');
+                      setLessonResult({});
+                    }}
+                    className={`text-left px-3 py-1.5 rounded-md border text-sm ${
+                      mode === 'lesson' && selectedLessonId === l.id
+                        ? 'bg-[#007BFF] text-white border-[#007BFF]'
+                        : 'bg-white border-gray-300 hover:bg-gray-100'
+                    } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                  >{l.label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="classic-panel p-3 sm:p-4">
+              <div className="flex flex-col gap-2">
+                <button
+                  disabled={status === 'running'}
+                  onClick={() => { if (status !== 'running') { setMode('chars'); setText(generateCharPracticeText(charSet)); setTyped(''); setLessonResult({}); } }}
+                  className={`text-left px-3 py-1.5 rounded-md border text-sm ${
+                    mode === 'chars' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                  } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                >Custom Characters</button>
+                <button
+                  disabled={status === 'running'}
+                  onClick={() => { if (status !== 'running') { setMode('quote'); setText(pickQuote()); setTyped(''); setLessonResult({}); } }}
+                  className={`text-left px-3 py-1.5 rounded-md border text-sm ${
+                    mode === 'quote' ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
+                  } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
+                >Typing test</button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main content */}
           <div className="lg:col-span-3 space-y-4">
             {/* Typing area is now the main focus; stats are unified above */}
             <section className="space-y-4">
@@ -233,29 +277,6 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
               )}
               {/* Settings & Actions Bar */}
               <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs uppercase tracking-wide text-[#666666] mr-1">Mode</span>
-                  {([
-                    { id: 'quote', label: 'Quotes' },
-                    { id: 'words', label: 'Words' },
-                    { id: 'chars', label: 'Characters' },
-                  ] as const).map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => { if (status !== 'running') {
-                        const id = m.id as Mode;
-                        setMode(id);
-                        if (id === 'quote') setText(pickQuote());
-                        if (id === 'words') setText(generateWordPracticeText());
-                        if (id === 'chars') setText(generateCharPracticeText(charSet));
-                        setTyped(''); setLessonResult({});
-                      }}}
-                      className={`px-3 py-1.5 rounded-md text-sm border ${
-                        mode === m.id ? 'bg-[#007BFF] text-white border-[#007BFF]' : 'bg-white border-gray-300 hover:bg-gray-100'
-                      } ${status === 'running' ? 'opacity-60 pointer-events-none' : ''}`}
-                    >{m.label}</button>
-                  ))}
-                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs uppercase tracking-wide text-[#666666] mr-1">Time</span>
                   {DURATION_OPTIONS.map(d => (
@@ -276,45 +297,30 @@ import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, s
                   >↻</button>
                 </div>
               </div>
+
+              {mode === 'chars' && (
+                <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 w-full">
+                  <label className="block text-xs uppercase tracking-wide text-[#666666] mb-1">Character group</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={charSet}
+                      disabled={status === 'running'}
+                      onChange={(e) => setCharSet(e.target.value)}
+                      placeholder="e.g. asdfg"
+                      className="flex-1 bg-white border border-gray-300 rounded-md px-2 py-1 text-sm outline-none focus:border-[#007BFF]"
+                    />
+                    <button
+                      disabled={status === 'running'}
+                      onClick={() => { if (status !== 'running') { setText(generateCharPracticeText(charSet)); setTyped(''); } }}
+                      className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100 disabled:opacity-60"
+                    >Apply</button>
+                  </div>
+                </div>
+              )}
               <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch {} }} />
             </section>
           </div>
-          <div className="space-y-4">
-            {mode === 'chars' && (
-              <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 w-full">
-                <label className="block text-xs uppercase tracking-wide text-[#666666] mb-1">Character group</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={charSet}
-                    disabled={status === 'running'}
-                    onChange={(e) => setCharSet(e.target.value)}
-                    placeholder="e.g. asdfg"
-                    className="flex-1 bg-white border border-gray-300 rounded-md px-2 py-1 text-sm outline-none focus:border-[#007BFF]"
-                  />
-                  <button
-                    disabled={status === 'running'}
-                    onClick={() => { if (status !== 'running') { setText(generateCharPracticeText(charSet)); setTyped(''); } }}
-                    className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100 disabled:opacity-60"
-                  >Apply</button>
-                </div>
-              </div>
-            )}
-            {mode === 'lesson' && (
-              <LessonPicker
-                lessons={LESSONS}
-                selectedId={selectedLessonId}
-                disabled={status === 'running'}
-                progress={lessonsProgress}
-                onSelect={(id) => {
-                  if (status === 'running') return;
-                  setSelectedLessonId(id);
-                  const l = LESSONS.find(x => x.id === id);
-                  setText(generateCharPracticeText(l?.chars || 'asdf'));
-                  setTyped('');
-                }}
-              />
-            )}
-          </div>
+          
         </div>
 
        </div>

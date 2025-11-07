@@ -1,16 +1,20 @@
- import type { Lesson } from '../types';
+import type { Lesson } from '../types';
 
- export const LESSONS: Lesson[] = [
-   { id: 'home-1', label: 'Home Row 1', chars: 'fj', wpmThreshold: 15, accuracyThreshold: 95 },
-   { id: 'home-2', label: 'Home Row 2', chars: 'fjdk', wpmThreshold: 18, accuracyThreshold: 95 },
-   { id: 'home-3', label: 'Home Row 3', chars: 'fjdksl', wpmThreshold: 20, accuracyThreshold: 95 },
-   { id: 'home-4', label: 'Home Row Full', chars: 'asdfjkl;', wpmThreshold: 22, accuracyThreshold: 95 },
-   { id: 'top-1', label: 'Top Row 1', chars: 'ru', wpmThreshold: 20, accuracyThreshold: 94 },
-   { id: 'top-2', label: 'Top Row 2', chars: 'ruet', wpmThreshold: 22, accuracyThreshold: 94 },
-   { id: 'top-3', label: 'Top Row 3', chars: 'ruetiy', wpmThreshold: 24, accuracyThreshold: 94 },
-   { id: 'top-4', label: 'Top Row Full', chars: 'qwertyuiop', wpmThreshold: 26, accuracyThreshold: 93 },
-   { id: 'bottom-1', label: 'Bottom Row 1', chars: 'vm', wpmThreshold: 20, accuracyThreshold: 94 },
-   { id: 'bottom-2', label: 'Bottom Row 2', chars: 'vmc', wpmThreshold: 22, accuracyThreshold: 94 },
-   { id: 'bottom-3', label: 'Bottom Row 3', chars: 'vmczx', wpmThreshold: 24, accuracyThreshold: 93 },
-   { id: 'bottom-4', label: 'Bottom Row Full', chars: 'zxcvbnm', wpmThreshold: 26, accuracyThreshold: 92 }
- ];
+// 15 lessons from common to less common letters (letters only for generator compatibility)
+export const LESSONS: Lesson[] = [
+  { id: 'lesson-1', label: 'Lesson 1', chars: 'fj', wpmThreshold: 15, accuracyThreshold: 95 },
+  { id: 'lesson-2', label: 'Lesson 2', chars: 'dk', wpmThreshold: 16, accuracyThreshold: 95 },
+  { id: 'lesson-3', label: 'Lesson 3', chars: 'sl', wpmThreshold: 17, accuracyThreshold: 95 },
+  { id: 'lesson-4', label: 'Lesson 4', chars: 'ah', wpmThreshold: 18, accuracyThreshold: 95 },
+  { id: 'lesson-5', label: 'Lesson 5', chars: 'ge', wpmThreshold: 19, accuracyThreshold: 95 },
+  { id: 'lesson-6', label: 'Lesson 6', chars: 'ri', wpmThreshold: 20, accuracyThreshold: 95 },
+  { id: 'lesson-7', label: 'Lesson 7', chars: 'to', wpmThreshold: 21, accuracyThreshold: 94 },
+  { id: 'lesson-8', label: 'Lesson 8', chars: 'nu', wpmThreshold: 22, accuracyThreshold: 94 },
+  { id: 'lesson-9', label: 'Lesson 9', chars: 'cm', wpmThreshold: 23, accuracyThreshold: 94 },
+  { id: 'lesson-10', label: 'Lesson 10', chars: 'wy', wpmThreshold: 24, accuracyThreshold: 93 },
+  { id: 'lesson-11', label: 'Lesson 11', chars: 'pb', wpmThreshold: 24, accuracyThreshold: 93 },
+  { id: 'lesson-12', label: 'Lesson 12', chars: 'v', wpmThreshold: 24, accuracyThreshold: 92 },
+  { id: 'lesson-13', label: 'Lesson 13', chars: 'x', wpmThreshold: 24, accuracyThreshold: 92 },
+  { id: 'lesson-14', label: 'Lesson 14', chars: 'q', wpmThreshold: 24, accuracyThreshold: 92 },
+  { id: 'lesson-15', label: 'Lesson 15', chars: 'z', wpmThreshold: 24, accuracyThreshold: 92 },
+];

@@ -2,6 +2,11 @@
  @tailwind components;
  @tailwind utilities;
 
+/* Increase global font size for better readability */
+:root {
+  font-size: 18px; /* default is 16px; bump to 18px globally */
+}
+
 .classic-panel {
   background: linear-gradient(#eeeeee, #ffffff);
   border: 1px solid #dddddd;

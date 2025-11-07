@@ -284,7 +284,7 @@ import { useI18n } from './lib/i18n';
                   return (
                     <div key={l.id} className={`rounded-md border ${isSelected ? 'border-[#007BFF]' : 'border-gray-300'}`}>
                       <button
-                        className="w-full px-3 py-1.5 flex items-center justify-between"
+                        className="w-full px-3 py-2 flex items-center justify-between"
                         onClick={() => {
                           if (status === 'running') return;
                           setMode('lesson');
@@ -292,7 +292,10 @@ import { useI18n } from './lib/i18n';
                         }}
                         disabled={status === 'running'}
                       >
-                        <div className="text-sm font-medium text-[#222222] text-left">{l.label}</div>
+                        <div className="text-left">
+                          <div className="text-sm font-medium text-[#222222]">{l.label}</div>
+                          <div className="text-xs text-[#666666]">{t('newKeys')}: {l.chars}</div>
+                        </div>
                         {examPassed && <span className="text-[#28A745] text-xs">✓ {t('passed')}</span>}
                       </button>
                       {isSelected && (

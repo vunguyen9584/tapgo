@@ -138,7 +138,17 @@ function makeClause(lang: Lang, prng: () => number): string {
     const a2 = pickOne(W.adjectives, prng);
     const n2 = pickOne(W.nouns, prng);
     const adv = useAdv ? pickOne(W.adverbs, prng) + ' ' : '';
-    return `the ${a1} ${n1} ${adv}${v} the ${a2} ${n2}`;
+    // Choose determiners to avoid always starting with "the"; sometimes omit or use a/an.
+    const startsWithVowel = (w: string) => /^[aeiou]/i.test(w);
+    const detFor = (adj: string): string => {
+      const r = prng();
+      if (r < 0.45) return '';
+      if (r < 0.75) return 'the ';
+      return startsWithVowel(adj) ? 'an ' : 'a ';
+    };
+    const det1 = detFor(a1);
+    const det2 = detFor(a2);
+    return `${det1}${a1} ${n1} ${adv}${v} ${det2}${a2} ${n2}`;
   } else {
     const useAdv = prng() < 0.6;
     const a1 = pickOne(W.adjectives, prng);

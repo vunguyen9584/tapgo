@@ -42,7 +42,14 @@ const COMMON_WORDS = [
   'or','an','will','my','one','all','would','there','their','what',
   'so','up','out','if','about','who','get','which','go','me',
   'when','make','can','like','time','no','just','him','know','take',
-  'people','into','year','your','good','some','could','them','see','other'
+  'people','into','year','your','good','some','could','them','see','other',
+  'new','first','last','long','great','little','own','old','right','big',
+  'high','small','large','next','early','young','important','few','public','same',
+  'able','work','life','world','hand','part','place','case','week','company',
+  'system','program','question','night','point','home','water','room','area','money',
+  'story','fact','month','lot','study','book','eye','job','word','business',
+  'issue','side','kind','head','house','service','friend','father','power','hour',
+  'game','line','end','member','law','car','city','community','health','name'
 ];
 
 export function generateWordPracticeText(count = 60): string {
@@ -68,30 +75,37 @@ const WORDS: Record<Lang, {
   en: {
     nouns: [
       'fox','dog','river','mountain','ocean','forest','city','writer','musician','teacher','student','garden','sunset','morning','evening','breeze','storm','path','memory','dream','thought','keyboard','screen','book','coffee','letter','voice','story','mirror','lantern',
+      'valley','meadow','cloud','rain','thunder','library','market','traveler','artist','engineer','neighbor','child','parent','friend','camera','notebook','bicycle','train','station','bridge','harbor','village','field','desert','canyon','island','shore','wave','pixel','algorithm','cursor','window','lamp','candle','shadow','pattern','rhythm','tempo','code','function','module'
     ],
     verbs: [
       'run','walk','glide','whisper','glimmer','bloom','echo','gather','linger','reach','write','paint','compose','reflect','search','weave','build','measure',
+      'drift','wander','flow','sparkle','ripple','hum','dance','twist','unfold','emerge','illuminate','navigate','observe','ponder','discover','assemble','connect','balance','debug','optimize'
     ],
     adjectives: [
       'quiet','gentle','bright','silent','patient','curious','distant','familiar','fragile','warm','tender','soft','vivid','steady','humble','lively','brisk','calm',
+      'crisp','shimmering','golden','dim','faint','bold','wild','serene','restless','ancient','modern','playful','subtle','radiant','cool','windy','rainy','misty','cloudy','cozy','fleeting','endless','finite','messy','pristine','glossy','dusty','narrow','wide','deep','shallow'
     ],
     adverbs: [
       'quietly','slowly','gently','boldly','softly','lightly','firmly','bravely','brightly','calmly','patiently','briefly',
+      'swiftly','eagerly','smoothly','gracefully','roughly','neatly','sharply','deeply','truly','freely','precisely','casually','carefully','suddenly','rarely','often','seldom'
     ],
-    connectors: ['and','but','because','so','while'],
+    connectors: ['and','but','because','so','while','yet','though','however','therefore','meanwhile','moreover','nevertheless'],
   },
   vi: {
     nouns: [
       'cơn gió','dòng sông','ngọn núi','mặt trời','khu vườn','con đường','thành phố','người viết','người học','bài hát','kỷ niệm','giấc mơ','suy nghĩ','màn hình','bàn phím','cuốn sách','tách cà phê','buổi sáng','buổi tối',
+      'ánh trăng','đám mây','cơn mưa','tiếng sét','thư viện','khu chợ','người lữ khách','người nghệ sĩ','người kỹ sư','người hàng xóm','đứa trẻ','người cha','người mẹ','người bạn','máy ảnh','sổ tay','xe đạp','tàu hỏa','nhà ga','cây cầu','bến cảng','ngôi làng','cánh đồng','sa mạc','hẻm núi','hòn đảo','bờ bãi','con sóng','thuật toán','con trỏ','cửa sổ','ngọn đèn','cái bóng','mẫu hình','nhịp điệu','nhịp độ','mã nguồn','hàm số','mô-đun'
     ],
     verbs: [
       'chạy','đi','viết','đọc','nghe','nhìn','gọi','giữ','ghép','gom','xây','tìm','đợi','ngẫm',
+      'trôi','lang thang','tuôn chảy','lấp lánh','gợn sóng','rì rầm','nhảy múa','xoắn','mở ra','hiện lên','soi sáng','điều hướng','quan sát','suy ngẫm','khám phá','lắp ráp','kết nối','cân bằng','gỡ lỗi','tối ưu'
     ],
     adjectives: [
       'nhẹ','chậm','nhanh','ấm','trong','lặng','dài','ngắn','gần','xa','thân','khác','xanh','đẹp','bền',
+      'giòn','lấp lánh','vàng óng','mờ','nhạt','đậm','hoang dã','thanh bình','bồn chồn','cổ xưa','hiện đại','đùa nghịch','tinh tế','rực rỡ','mát','lộng gió','mưa','mờ sương','nhiều mây','ấm cúng','thoáng chốc','bất tận','hữu hạn','lộn xộn','tinh khôi','bóng bẩy','bụi bặm','hẹp','rộng','sâu','nông','gọn gàng'
     ],
-    adverbs: ['rất','khá','hơi','đôi khi','luôn','thường','chậm rãi','nhẹ nhàng'],
-    connectors: ['và','nhưng','bởi vì','nên','trong khi'],
+    adverbs: ['rất','khá','hơi','đôi khi','luôn','thường','chậm rãi','nhẹ nhàng','nhanh chóng','háo hức','êm ái','duyên dáng','thô ráp','gọn gàng','sắc bén','sâu sắc','thật lòng','tự do','chính xác','tình cờ','cẩn thận','đột ngột','hiếm khi','thường xuyên','từ tốn','vội vã','vững vàng','tỉ mỉ'],
+    connectors: ['và','nhưng','bởi vì','nên','trong khi','tuy nhiên','vì vậy','do đó','trong lúc đó','hơn nữa','dẫu vậy'],
   },
 };
 

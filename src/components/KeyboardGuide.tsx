@@ -78,11 +78,7 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
          </button>
        </div>
        {show && (
-        <div className="grid grid-cols-1 sm:[grid-template-columns:auto_1fr_auto] items-start gap-3">
-          {/* Desktop/tablet: hands on the sides */}
-          <div className="hidden sm:block">
-            <Hand side="left" active={activeFinger} />
-          </div>
+        <div className="flex flex-col items-stretch gap-3">
           <div className="space-y-1 min-w-0">
             {keyRows.map((row, idx) => (
               <div key={idx} className="flex justify-center gap-1">
@@ -101,12 +97,7 @@ export default function KeyboardGuide({ activeChar, show, onToggle }: Props) {
               <div className={`w-48 sm:w-64 h-8 keycap ${activeKey==='space' ? 'keycap-active' : ''}`}></div>
             </div>
           </div>
-          <div className="hidden sm:block">
-            <Hand side="right" active={activeFinger} />
-          </div>
-
-          {/* Mobile: place both hands below the keyboard */}
-          <div className="sm:hidden col-span-1 flex items-end justify-center gap-3">
+          <div className="flex items-end justify-center gap-3">
             <Hand side="left" active={activeFinger} />
             <Hand side="right" active={activeFinger} />
           </div>

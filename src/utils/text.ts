@@ -1,36 +1,39 @@
 export const DURATION_OPTIONS = [15, 30, 60, 120] as const;
 
- export function computeCorrectIncorrect(typed: string, target: string): { correct: number; incorrect: number } {
-   let correct = 0, incorrect = 0;
-   for (let i = 0; i < typed.length; i++) {
-     if (typed[i] === target[i]) correct++;
-     else incorrect++;
-   }
-   return { correct, incorrect };
- }
+// Compare typed text against target and count per‑character correctness for the typed portion only.
+export function computeCorrectIncorrect(typed: string, target: string): { correct: number; incorrect: number } {
+  let correct = 0;
+  let incorrect = 0;
+  for (let i = 0; i < typed.length; i++) {
+    if (typed[i] === target[i]) correct++;
+    else incorrect++;
+  }
+  return { correct, incorrect };
+}
 
- function uniqueChars(input: string): string[] {
-   const set = new Set<string>();
-   for (const ch of input) {
-     if (!/\s/.test(ch)) set.add(ch.toLowerCase());
-   }
-   return Array.from(set);
- }
+function uniqueNonWhitespaceChars(input: string): string[] {
+  const set = new Set<string>();
+  for (const ch of input) {
+    if (!/\s/.test(ch)) set.add(ch.toLowerCase());
+  }
+  return Array.from(set);
+}
 
- export function generateCharPracticeText(chars: string, approxLength = 160): string {
-   const pool = uniqueChars(chars);
-   if (pool.length === 0) return 'Please configure character set (e.g. asdfg).';
-   const words: string[] = [];
-   let len = 0;
-   while (len < approxLength) {
-     const wLen = 3 + Math.floor(Math.random() * 5); // 3..7
-     let w = '';
-     for (let i = 0; i < wLen; i++) w += pool[Math.floor(Math.random() * pool.length)];
-     words.push(w);
-     len += w.length + 1;
-   }
-   return words.join(' ').slice(0, approxLength).trimEnd();
- }
+// Build a stream of pseudo‑words comprised only of provided characters.
+export function generateCharPracticeText(chars: string, approxLength = 160): string {
+  const pool = uniqueNonWhitespaceChars(chars);
+  if (pool.length === 0) return 'Please configure character set (e.g. asdfg).';
+  const words: string[] = [];
+  let totalLen = 0;
+  while (totalLen < approxLength) {
+    const wordLen = 3 + Math.floor(Math.random() * 5); // 3..7
+    let w = '';
+    for (let i = 0; i < wordLen; i++) w += pool[Math.floor(Math.random() * pool.length)];
+    words.push(w);
+    totalLen += w.length + 1;
+  }
+  return words.join(' ').slice(0, approxLength).trimEnd();
+}
 
 const COMMON_WORDS = [
   'the','be','to','of','and','a','in','that','have','I',
@@ -102,7 +105,7 @@ function hash32(str: string): number {
   return h >>> 0;
 }
 
-function mulberry32(a: number) {
+function mulberry32(a: number): () => number {
   let t = a >>> 0;
   return function () {
     t += 0x6d2b79f5;
@@ -112,7 +115,7 @@ function mulberry32(a: number) {
   };
 }
 
-function randInt(prng: () => number, min: number, max: number) {
+function randIntInclusive(prng: () => number, min: number, max: number): number {
   return Math.floor(prng() * (max - min + 1)) + min;
 }
 
@@ -120,7 +123,7 @@ function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
-function pick<T>(arr: readonly T[], prng: () => number): T {
+function pickOne<T>(arr: readonly T[], prng: () => number): T {
   const idx = Math.floor(prng() * arr.length);
   return arr[idx]!;
 }
@@ -129,27 +132,27 @@ function makeClause(lang: Lang, prng: () => number): string {
   const W = WORDS[lang];
   if (lang === 'en') {
     const useAdv = prng() < 0.6;
-    const a1 = pick(W.adjectives, prng);
-    const n1 = pick(W.nouns, prng);
-    const v = pick(W.verbs, prng) + (prng() < 0.7 ? 's' : '');
-    const a2 = pick(W.adjectives, prng);
-    const n2 = pick(W.nouns, prng);
-    const adv = useAdv ? pick(W.adverbs, prng) + ' ' : '';
+    const a1 = pickOne(W.adjectives, prng);
+    const n1 = pickOne(W.nouns, prng);
+    const v = pickOne(W.verbs, prng) + (prng() < 0.7 ? 's' : '');
+    const a2 = pickOne(W.adjectives, prng);
+    const n2 = pickOne(W.nouns, prng);
+    const adv = useAdv ? pickOne(W.adverbs, prng) + ' ' : '';
     return `the ${a1} ${n1} ${adv}${v} the ${a2} ${n2}`;
   } else {
     const useAdv = prng() < 0.6;
-    const a1 = pick(W.adjectives, prng);
-    const n1 = pick(W.nouns, prng);
-    const v = pick(W.verbs, prng);
-    const a2 = pick(W.adjectives, prng);
-    const n2 = pick(W.nouns, prng);
-    const adv = useAdv ? pick(W.adverbs, prng) + ' ' : '';
+    const a1 = pickOne(W.adjectives, prng);
+    const n1 = pickOne(W.nouns, prng);
+    const v = pickOne(W.verbs, prng);
+    const a2 = pickOne(W.adjectives, prng);
+    const n2 = pickOne(W.nouns, prng);
+    const adv = useAdv ? pickOne(W.adverbs, prng) + ' ' : '';
     return `${n1} ${adv}${v} ${n2} ${a2}`;
   }
 }
 
 function makeSentence(lang: Lang, prng: () => number): string {
-  const clauses = randInt(prng, 1, 3);
+  const clauses = randIntInclusive(prng, 1, 3);
   const parts: string[] = [];
   for (let i = 0; i < clauses; i++) parts.push(makeClause(lang, prng));
   let s = parts.join(', ');
@@ -162,7 +165,7 @@ function generateText(lang: Lang, prng: () => number, minLen = 40, maxLen = 160)
   let attempt = 0;
   let text = '';
   while (attempt < 12) {
-    const sentences = randInt(prng, 1, 3);
+    const sentences = randIntInclusive(prng, 1, 3);
     const buf: string[] = [];
     for (let i = 0; i < sentences; i++) buf.push(makeSentence(lang, prng));
     text = buf.join(' ');
@@ -188,37 +191,10 @@ export function generateTypingTestText(params?: {
   const maxLen = params?.maxLength ?? 160;
   const s32 = hash32(String(params?.seed ?? Math.random()));
   const prng = mulberry32(s32);
-  // Generate base text
+  // Generate base text (no forced inclusion of particular characters)
   let text = generateText(lang, prng, minLen, maxLen);
 
-  // Ensure coverage of specific characters: 'j', ';', '\''
-  const hasJ = /j/i.test(text);
-  const hasSemicolon = /;/.test(text);
-  const hasApos = /'/.test(text);
-
-  // Insert a semicolon by upgrading the first comma, or injecting near the middle
-  if (!hasSemicolon) {
-    if (text.includes(',')) {
-      text = text.replace(',', ';');
-    } else {
-      const mid = Math.max(0, Math.floor(text.length / 2));
-      const sp = text.indexOf(' ', mid);
-      if (sp !== -1) text = text.slice(0, sp) + ';' + text.slice(sp);
-      else text += ';';
-    }
-  }
-
-  // Helper to append a word before the final sentence-ending punctuation (., !, ?)
-  function appendWordBeforeEnd(word: string) {
-    if (/[.!?]$/.test(text)) text = text.replace(/([.!?])$/, ` ${word}$1`);
-    else text += ` ${word}`;
-  }
-
-  if (!hasJ) appendWordBeforeEnd('jazz');
-  if (!hasApos) appendWordBeforeEnd("it's");
-
-  // Normalize: prevent adjacent punctuation such as '.,', '.;', ',;', ';;', '?!', etc.
-  // Keep the first punctuation and collapse subsequent into it.
+  // Normalize adjacent punctuation defensively.
   text = text.replace(/([.,;:!?])([.,;:!?])+/g, '$1');
 
   return text;

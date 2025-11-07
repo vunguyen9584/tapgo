@@ -9,6 +9,7 @@ import { computeCorrectIncorrect, generateCharPracticeText, generateWordPractice
 import { LESSONS } from './utils/lessons';
 import type { AppStatus, Mode, Lesson, LessonsProgressMap } from './types';
 import { firebaseEnabled, onUserChange, loginWithGoogle, logout, loadProgress, saveProgress } from './lib/firebase';
+import UserMenu from './components/UserMenu';
 import { useI18n } from './lib/i18n';
 import './styles/styles.css';
 
@@ -257,10 +258,7 @@ export default function App() {
       </select>
       {firebaseEnabled ? (
         user ? (
-          <div className="flex items-center gap-2">
-            <span className="text-[#666666] text-sm hidden sm:inline">{user.displayName || user.email}</span>
-            <button onClick={() => logout()} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100">Logout</button>
-          </div>
+          <UserMenu user={user} onLogout={logout} />
         ) : (
           <button onClick={() => loginWithGoogle()} className="px-3 py-1.5 rounded-md text-sm border border-gray-300 hover:bg-gray-100">Login</button>
         )

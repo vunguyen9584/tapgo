@@ -188,5 +188,38 @@ export function generateTypingTestText(params?: {
   const maxLen = params?.maxLength ?? 160;
   const s32 = hash32(String(params?.seed ?? Math.random()));
   const prng = mulberry32(s32);
-  return generateText(lang, prng, minLen, maxLen);
+  // Generate base text
+  let text = generateText(lang, prng, minLen, maxLen);
+
+  // Ensure coverage of specific characters: 'j', ';', '\''
+  const hasJ = /j/i.test(text);
+  const hasSemicolon = /;/.test(text);
+  const hasApos = /'/.test(text);
+
+  // Insert a semicolon by upgrading the first comma, or injecting near the middle
+  if (!hasSemicolon) {
+    if (text.includes(',')) {
+      text = text.replace(',', ';');
+    } else {
+      const mid = Math.max(0, Math.floor(text.length / 2));
+      const sp = text.indexOf(' ', mid);
+      if (sp !== -1) text = text.slice(0, sp) + ';' + text.slice(sp);
+      else text += ';';
+    }
+  }
+
+  // Helper to append a word before the final sentence-ending punctuation (., !, ?)
+  function appendWordBeforeEnd(word: string) {
+    if (/[.!?]$/.test(text)) text = text.replace(/([.!?])$/, ` ${word}$1`);
+    else text += ` ${word}`;
+  }
+
+  if (!hasJ) appendWordBeforeEnd('jazz');
+  if (!hasApos) appendWordBeforeEnd("it's");
+
+  // Normalize: prevent adjacent punctuation such as '.,', '.;', ',;', ';;', '?!', etc.
+  // Keep the first punctuation and collapse subsequent into it.
+  text = text.replace(/([.,;:!?])([.,;:!?])+/g, '$1');
+
+  return text;
 }

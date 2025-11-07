@@ -18,11 +18,11 @@
      { label: 'Time', value: fmtTime(timeLeft) }
    ];
    return (
-     <div className="grid grid-cols-3 gap-3 sm:gap-4">
+    <div className="grid grid-cols-3 gap-3 sm:gap-4">
        {items.map(({ label, value }) => (
-         <div key={label} className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4 text-center">
-           <div className="text-xs uppercase tracking-wide text-slate-400">{label}</div>
-           <div className="text-2xl sm:text-3xl font-semibold mt-1">{value}</div>
+        <div key={label} className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 text-center">
+          <div className="text-xs uppercase tracking-wide text-[#666666]">{label}</div>
+          <div className="text-2xl sm:text-3xl font-semibold mt-1 text-[#222222]">{value}</div>
          </div>
        ))}
      </div>

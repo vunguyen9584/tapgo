@@ -2,10 +2,43 @@
  @tailwind components;
  @tailwind utilities;
 
+/* Increase global font size for better readability */
+:root {
+  font-size: 18px; /* default is 16px; bump to 18px globally */
+}
+
+.classic-panel {
+  background: linear-gradient(#eeeeee, #ffffff);
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+}
+
+.classic-bar {
+  background: linear-gradient(#f2f2f2, #ffffff);
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+}
+
+.keycap {
+  background: linear-gradient(#ffffff, #f0f0f0);
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 28px;
+  text-align: center;
+  color: #222222;
+}
+
+.keycap-active {
+  background: #ccffcc;
+  border-color: #00FF00;
+  box-shadow: inset 0 0 0 2px #00FF00;
+}
+
  .caret {
    width: 2px;
    height: 1.4em;
-   background-color: #38bdf8;
+  background-color: #007BFF;
    display: inline-block;
    transform: translateY(0.12em);
    animation: caret-blink 1s steps(1) infinite;

@@ -112,6 +112,14 @@
   - Two‑pane layout on desktop: left (Metrics + Typing area + Keyboard guide below input), right (contextual panel for Char mode or Lessons); stacked on mobile.
   - Status: Completed
 
+ - Light Theme Palette and Centralized Interaction Card
+   - Switched to light theme (bg #F9F9F9 / #FFFFFF, text #222, muted #666, accent #007BFF, success #28A745, error #DC3545).
+   - Stats bar placed directly above the typing area.
+   - Combined “text to type” and input into a single overlay typing surface with caret and correctness coloring.
+   - Settings & Actions bar placed under the typing area: Mode [Quotes | Words | Characters], Time [15|30|60|120], and Restart.
+   - Virtual keyboard moved into its own collapsible block below the interaction card.
+   - Status: Completed
+
  ## 5) Notes on Deviations
 
  - The spec listed JavaScript files; the implementation uses TypeScript and a best‑practice `src/` structure while preserving the same component responsibilities.

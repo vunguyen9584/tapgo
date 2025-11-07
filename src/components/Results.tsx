@@ -1,4 +1,5 @@
- import React from 'react';
+import React from 'react';
+import { useI18n } from '../lib/i18n';
 
  type WpmChartProps = { data: number[] };
  function WpmChart({ data }: WpmChartProps) {
@@ -13,19 +14,19 @@
          return `${x},${y}`;
        }).join(' ')
      : `0,${height} ${width},${height}`;
-   return (
-     <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-28">
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-28">
        <rect width={width} height={height} fill="transparent" />
-       <polyline fill="none" stroke="#38bdf8" strokeWidth={2} points={points} />
+      <polyline fill="none" stroke="#007BFF" strokeWidth={2} points={points} />
      </svg>
    );
  }
 
  function Stat({ label, value }: { label: string; value: string | number }) {
-   return (
-     <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-center">
-       <div className="text-xs uppercase tracking-wide text-slate-400">{label}</div>
-       <div className="text-xl sm:text-2xl font-semibold mt-1">{value}</div>
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
+      <div className="text-xs uppercase tracking-wide text-[#666666]">{label}</div>
+      <div className="text-xl sm:text-2xl font-semibold mt-1 text-[#222222]">{value}</div>
      </div>
    );
  }
@@ -44,14 +45,15 @@ type Props = {
  };
 
 export default function Results({ open, onClose, wpm, accuracy, correct, incorrect, wpmHistory, duration, lessonLabel, lessonPassed }: Props) {
+  const { t } = useI18n();
    if (!open) return null;
-   return (
-     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-       <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="text-xl font-semibold mb-2">Results</h2>
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="w-full max-w-xl bg-white border border-gray-200 rounded-2xl p-6 text-[#222222]">
+        <h2 className="text-xl font-semibold mb-2">{t('results')}</h2>
         {lessonLabel && (
-          <div className={`mb-4 text-sm ${lessonPassed ? 'text-emerald-400' : 'text-rose-400'}`}>
-            Lesson: {lessonLabel} — {lessonPassed ? 'Passed' : 'Not passed'}
+          <div className={`mb-4 text-sm ${lessonPassed ? 'text-[#28A745]' : 'text-[#DC3545]'}`}>
+            {t('lesson')}: {lessonLabel} — {lessonPassed ? t('passedShort') : t('notPassed')}
           </div>
         )}
          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -61,16 +63,16 @@ export default function Results({ open, onClose, wpm, accuracy, correct, incorre
            <Stat label="Incorrect" value={incorrect} />
          </div>
          <div className="mb-6">
-           <div className="flex items-center justify-between mb-2">
-             <span className="text-slate-400 text-sm">WPM over time</span>
-             <span className="text-slate-500 text-xs">{duration}s</span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[#666666] text-sm">{t('wpmOverTime')}</span>
+            <span className="text-[#666666] text-xs">{duration}s</span>
            </div>
-           <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-3">
              <WpmChart data={wpmHistory} />
            </div>
          </div>
          <div className="flex justify-end gap-2">
-           <button onClick={onClose} className="px-4 py-2 rounded-md bg-sky-500 text-white hover:bg-sky-400 transition-colors">Try Again</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-md bg-[#007BFF] text-white hover:opacity-90 transition-colors">{t('tryAgain')}</button>
          </div>
        </div>
      </div>

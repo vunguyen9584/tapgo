@@ -215,5 +215,8 @@ export function generateTypingTestText(params?: {
   // Examples: "hello,world" -> "hello, world"; "end!  Next" -> "end! Next"
   text = text.replace(/([.,;:!?])\s*(?=\S)/g, '$1 ');
 
+  // Collapse repeated apostrophes (e.g., '' or ’’) into a single one.
+  text = text.replace(/(['])\1+/g, '$1');
+
   return text;
 }

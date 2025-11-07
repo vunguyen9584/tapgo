@@ -53,8 +53,7 @@ export default function TypingArea({ text, typed, status, onType, actions }: Pro
             } else if ((i === caret && nextIsSpace) || (i >= start && i < end)) {
               cls = 'text-[#0000FF] underline';
             }
-            const display = ch === ' ' ? '␣' : ch;
-            return <span key={i} className={cls}>{display}</span>;
+            return <span key={i} className={cls}>{ch}</span>;
           })}
         </div>
         {actions && (

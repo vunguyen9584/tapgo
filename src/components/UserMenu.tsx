@@ -6,7 +6,8 @@ type FirebaseUser = import('firebase/auth').User;
 export default function UserMenu({ user, onLogout, onOpenSettings }: { user: FirebaseUser; onLogout: () => void; onOpenSettings: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const aboutHref = locale === 'en' ? '/about.html' : '/gioi-thieu.html';
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -51,7 +52,7 @@ export default function UserMenu({ user, onLogout, onOpenSettings }: { user: Fir
           className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-50 overflow-hidden"
         >
           <a
-            href="/gioi-thieu.html"
+            href={aboutHref}
             className="block px-3 py-2 text-sm text-[#222222] hover:bg-gray-100"
             role="menuitem"
             onClick={() => setOpen(false)}

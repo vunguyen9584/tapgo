@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useI18n } from '../lib/i18n';
 
 type FirebaseUser = import('firebase/auth').User;
 
 export default function UserMenu({ user, onLogout, onOpenSettings }: { user: FirebaseUser; onLogout: () => void; onOpenSettings: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -54,21 +56,21 @@ export default function UserMenu({ user, onLogout, onOpenSettings }: { user: Fir
             role="menuitem"
             onClick={() => setOpen(false)}
           >
-            Giới thiệu
+            {t('about')}
           </a>
           <button
             className="w-full text-left block px-3 py-2 text-sm text-[#222222] hover:bg-gray-100"
             role="menuitem"
             onClick={() => { setOpen(false); onOpenSettings(); }}
           >
-            Thiết lập
+            {t('settings')}
           </button>
           <button
             className="w-full text-left block px-3 py-2 text-sm text-[#222222] hover:bg-gray-100"
             role="menuitem"
             onClick={() => { setOpen(false); onLogout(); }}
           >
-            Logout
+            {t('logout')}
           </button>
         </div>
       )}

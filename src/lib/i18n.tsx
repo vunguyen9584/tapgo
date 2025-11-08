@@ -40,7 +40,10 @@ const resources: Record<Locale, Dict> = {
     statsWpm: 'WPM',
     statsErrors: 'Lỗi',
     statsAccuracy: 'Độ chính xác',
-    statsTime: 'Thời gian'
+    statsTime: 'Thời gian',
+    about: 'Giới thiệu',
+    settings: 'Thiết lập',
+    logout: 'Đăng xuất'
   },
   en: {
     appName: 'Keyboard Master',
@@ -77,7 +80,10 @@ const resources: Record<Locale, Dict> = {
     statsWpm: 'WPM',
     statsErrors: 'Errors',
     statsAccuracy: 'Accuracy',
-    statsTime: 'Time'
+    statsTime: 'Time',
+    about: 'About',
+    settings: 'Settings',
+    logout: 'Logout'
   }
 };
 

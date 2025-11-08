@@ -43,7 +43,12 @@ const resources: Record<Locale, Dict> = {
     statsTime: 'Thời gian',
     about: 'Giới thiệu',
     settings: 'Thiết lập',
-    logout: 'Đăng xuất'
+    logout: 'Đăng xuất',
+    setMinExamWpmDesc: 'Đặt WPM tối thiểu để đậu mỗi bài kiểm tra cuối bài.',
+    minWpmLabel: 'WPM tối thiểu',
+    wpmUnit: 'WPM',
+    close: 'Đóng',
+    save: 'Lưu'
   },
   en: {
     appName: 'Keyboard Master',
@@ -83,7 +88,12 @@ const resources: Record<Locale, Dict> = {
     statsTime: 'Time',
     about: 'About',
     settings: 'Settings',
-    logout: 'Logout'
+    logout: 'Logout',
+    setMinExamWpmDesc: 'Set the minimum WPM to pass each lesson final exam.',
+    minWpmLabel: 'Minimum WPM',
+    wpmUnit: 'WPM',
+    close: 'Close',
+    save: 'Save'
   }
 };
 

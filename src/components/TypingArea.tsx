@@ -8,9 +8,10 @@ type Props = {
   status: AppStatus;
   onType: (value: string) => void;
   actions?: React.ReactNode;
+  className?: string;
 };
 
-export default function TypingArea({ text, typed, status, onType, actions }: Props) {
+export default function TypingArea({ text, typed, status, onType, actions, className }: Props) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const { t } = useI18n();
 
@@ -35,48 +36,47 @@ export default function TypingArea({ text, typed, status, onType, actions }: Pro
 
   // Compute next word highlight boundaries
   const caret = typed.length;
-  const nextIsSpace = caret < text.length && /\s/.test(text[caret] ?? '');
-  let start = caret;
-  while (start < text.length && /\s/.test(text[start] ?? '')) start++;
-  let end = start;
-  while (end < text.length && !/\s/.test(text[end] ?? '')) end++;
+  // const nextIsSpace = caret < text.length && /\s/.test(text[caret] ?? '');
+  // let start = caret;
+  // while (start < text.length && /\s/.test(text[start] ?? '')) start++;
+  // let end = start;
+  // while (end < text.length && !/\s/.test(text[end] ?? '')) end++;
 
   return (
-    <div className="space-y-3">
-      <div className="classic-panel p-4 sm:p-6">
-        <div className="font-mono text-lg sm:text-2xl leading-8 sm:leading-9 whitespace-pre-wrap break-words">
-          {text.split('').map((ch, i) => {
-            const typedCh = i < caret ? typed[i] : undefined;
-            let cls = 'text-[#222222]';
-            if (i < caret) {
-              cls = typedCh === ch ? 'text-[#666666]' : 'text-[#DC3545]';
-            } else if ((i === caret && nextIsSpace) || (i >= start && i < end)) {
-              cls = 'text-[#0000FF] underline';
-            }
-            return <span key={i} className={cls}>{ch}</span>;
-          })}
+    <div className={`relative ${className || ''}`} onClick={() => inputRef.current?.focus()}>
+      <div className="font-mono text-2xl leading-relaxed break-words">
+        {text.split('').map((ch, i) => {
+          const typedCh = i < caret ? typed[i] : undefined;
+          let cls = 'text-gray-500'; // Default future text color
+
+          if (i < caret) {
+            // Past text
+            cls = typedCh === ch ? 'text-green-400' : 'text-red-400';
+          } else if (i === caret) {
+            // Current character cursor
+            cls = 'bg-blue-500 text-white rounded px-0.5';
+          }
+
+          return <span key={i} className={cls}>{ch}</span>;
+        })}
+      </div>
+
+      {actions && (
+        <div className="mt-4">
+          {actions}
         </div>
-        {actions && (
-          <div className="mt-4">
-            {actions}
-          </div>
-        )}
-      </div>
-      <div className="classic-panel p-3">
-        <textarea
-          ref={inputRef}
-          value={typed}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onPaste={block}
-          onDrop={block}
-          spellCheck={false}
-          rows={3}
-          className="w-full bg-white border border-gray-300 rounded-md outline-none resize-none font-mono text-lg sm:text-2xl leading-8 sm:leading-9 text-[#222222] placeholder-[#666666] px-2 py-1 focus:border-[#007BFF]"
-          placeholder="Type here..."
-        />
-        <div className="text-xs text-[#666666] mt-2">{t('yourInput')}</div>
-      </div>
+      )}
+
+      <textarea
+        ref={inputRef}
+        value={typed}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onPaste={block}
+        onDrop={block}
+        spellCheck={false}
+        className="absolute opacity-0 top-0 left-0 h-full w-full cursor-default resize-none"
+      />
     </div>
   );
 }

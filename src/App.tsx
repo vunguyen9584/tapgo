@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import TypingArea from './components/TypingArea';
 import StatsBar from './components/StatsBar';
 import Results from './components/Results';
 import KeyboardGuide from './components/KeyboardGuide';
+import EnhancedKeyboardGuide from './components/EnhancedKeyboardGuide';
 import TitleBar from './components/TitleBar';
 import SettingsModal from './components/SettingsModal';
 import { ToastContainer, type ToastItem } from './components/Toast';
@@ -44,6 +46,11 @@ export default function App() {
   });
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [keyboardOptions, setKeyboardOptions] = useState({
+    transparency: 1,
+    size: 'medium' as 'small' | 'medium' | 'large',
+    showFingerGuides: true
+  });
 
   const startTimeRef = useRef<number | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -93,6 +100,25 @@ export default function App() {
     });
     return () => { unsub && unsub(); };
   }, []);
+
+  // Load keyboard options from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('km_keyboardOptions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setKeyboardOptions(parsed);
+      }
+    } catch { }
+  }, []);
+
+  // Handler for keyboard options changes
+  const handleKeyboardOptionsChange = (newOptions: Partial<typeof keyboardOptions>) => {
+    setKeyboardOptions(prev => ({ ...prev, ...newOptions }));
+    try {
+      localStorage.setItem('km_keyboardOptions', JSON.stringify({ ...keyboardOptions, ...newOptions }));
+    } catch { }
+  };
 
   useEffect(() => {
     if (status !== 'running') return;
@@ -502,7 +528,17 @@ export default function App() {
                   </div>
                 </div>
               )}
-              <KeyboardGuide activeChar={activeChar} show={showGuide} onToggle={() => { const next = !showGuide; setShowGuide(next); try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch { } }} />
+              <EnhancedKeyboardGuide
+                activeChar={activeChar}
+                show={showGuide}
+                onToggle={() => {
+                  const next = !showGuide;
+                  setShowGuide(next);
+                  try { localStorage.setItem('km_showGuide', JSON.stringify(next)); } catch { }
+                }}
+                displayOptions={keyboardOptions}
+                onDisplayOptionsChange={handleKeyboardOptionsChange}
+              />
             </section>
           </div>
 

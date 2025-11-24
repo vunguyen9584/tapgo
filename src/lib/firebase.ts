@@ -1,5 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, type User, type Auth } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, type User, type Auth } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, type Firestore } from 'firebase/firestore';
 
 const cfg = {
@@ -26,6 +26,35 @@ export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
   const res = await signInWithPopup(auth, provider);
   return res.user;
+}
+
+export async function registerWithEmail(email: string, password: string) {
+  if (!auth) return undefined;
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function loginWithEmail(email: string, password: string) {
+  if (!auth) return undefined;
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function resetPassword(email: string) {
+  if (!auth) return;
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function logout() {
@@ -62,4 +91,26 @@ export async function loadSettings(uid: string): Promise<any | undefined> {
   const ref = doc(db, 'users', uid);
   const snap = await getDoc(ref);
   return snap.exists() ? (snap.data().settings as any) : undefined;
+}
+
+export async function saveTestResult(uid: string, testResult: any) {
+  if (!db) return;
+  const ref = doc(db, 'users', uid);
+  const existingData = await getDoc(ref);
+  const currentTests = existingData.exists() ? (existingData.data().tests || []) : [];
+  const updatedTests = [testResult, ...currentTests].slice(0, 50); // Keep last 50 test results
+  await setDoc(ref, { tests: updatedTests }, { merge: true });
+}
+
+export async function loadTestHistory(uid: string): Promise<any[]> {
+  if (!db) return [];
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  return snap.exists() ? (snap.data().tests || []) : [];
+}
+
+export async function updateUserStats(uid: string, stats: any) {
+  if (!db) return;
+  const ref = doc(db, 'users', uid);
+  await setDoc(ref, { stats }, { merge: true });
 }

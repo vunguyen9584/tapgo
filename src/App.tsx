@@ -5,7 +5,11 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Practice from './pages/Practice';
 import Lessons from './pages/Lessons';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
+import Test from './pages/Test';
 import SettingsModal from './components/SettingsModal';
+import AuthModal from './components/AuthModal';
 import { ToastContainer, type ToastItem } from './components/Toast';
 import { onUserChange, logout, loginWithGoogle, firebaseEnabled } from './lib/firebase';
 import { useI18n } from './lib/i18n';
@@ -15,6 +19,7 @@ export default function App() {
   const { t, locale } = useI18n();
   const [user, setUser] = useState<import('firebase/auth').User | null>(null);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [authOpen, setAuthOpen] = useState<boolean>(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   useEffect(() => {
@@ -41,15 +46,17 @@ export default function App() {
         </Helmet>
 
         {/* Sidebar */}
-        <Sidebar user={user} onLogout={logout} />
+        <Sidebar user={user} onLogout={logout} onLogin={() => setAuthOpen(true)} />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto h-screen">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard user={user} />} />
             <Route path="/practice" element={<Practice />} />
             <Route path="/lessons" element={<Lessons />} />
-            <Route path="/settings" element={<div className="p-8">Settings Page (Coming Soon)</div>} />
+            <Route path="/profile" element={<Profile user={user} />} />
+            <Route path="/test" element={<Test />} />
+            <Route path="/settings" element={<Settings user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
@@ -61,6 +68,7 @@ export default function App() {
           onSave={() => { }}
         />
 
+        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
         <ToastContainer items={toasts} onDismiss={dismissToast} />
       </div>
     </BrowserRouter>

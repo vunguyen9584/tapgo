@@ -1,11 +1,31 @@
 import React from 'react';
+import { useUserData } from '../hooks/useUserData';
+import { useI18n } from '../lib/i18n';
 
-export default function Dashboard() {
+type Props = {
+    user?: import('firebase/auth').User | null;
+};
+
+export default function Dashboard({ user }: Props) {
+    const { userData, loading } = useUserData(user || null);
+    const { t } = useI18n();
+
+    if (loading) {
+        return (
+            <div className="p-8 max-w-7xl mx-auto space-y-8">
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        );
+    }
+
+    const { stats } = userData;
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-500 mt-1">Here's a summary of your typing performance and progress.</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('dashboard')}</h1>
+                <p className="text-gray-500 mt-1">{t('dashboardDescription')}</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -33,9 +53,9 @@ export default function Dashboard() {
                                     <span className="text-sm font-medium text-gray-500">Words Per Minute (WPM)</span>
                                 </div>
                                 <div className="flex items-baseline gap-3">
-                                    <span className="text-4xl font-bold text-blue-500">75</span>
+                                    <span className="text-4xl font-bold text-blue-500">{stats.averageWPM}</span>
                                     <span className="text-sm font-medium text-green-500">↑ +5%</span>
-                                    <span className="text-sm text-gray-400">Last 30 Days</span>
+                                    <span className="text-sm text-gray-400">{t('last30Days')}</span>
                                 </div>
                                 <div className="h-32 mt-4 w-full">
                                     {/* Mock Chart - WPM */}
@@ -57,9 +77,9 @@ export default function Dashboard() {
                                     <span className="text-sm font-medium text-gray-500">Accuracy</span>
                                 </div>
                                 <div className="flex items-baseline gap-3">
-                                    <span className="text-4xl font-bold text-gray-900">98%</span>
+                                    <span className="text-4xl font-bold text-gray-900">{stats.averageAccuracy}%</span>
                                     <span className="text-sm font-medium text-red-500">↓ -1%</span>
-                                    <span className="text-sm text-gray-400">Last 30 Days</span>
+                                    <span className="text-sm text-gray-400">{t('last30Days')}</span>
                                 </div>
                                 <div className="h-32 mt-4 w-full">
                                     {/* Mock Chart - Accuracy */}
@@ -76,16 +96,16 @@ export default function Dashboard() {
                 <div className="space-y-6">
                     {/* Streak */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Practice Streak</h3>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
-                                <FireIcon />
-                            </div>
-                            <div>
-                                <div className="text-3xl font-bold text-gray-900">12</div>
-                                <div className="text-xs text-gray-500">Consecutive Days</div>
-                            </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">{t('practiceStreak')}</h3>
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
+                            <FireIcon />
                         </div>
+                        <div>
+                            <div className="text-3xl font-bold text-gray-900">{stats.practiceStreak}</div>
+                            <div className="text-xs text-gray-500">{t('consecutiveDays')}</div>
+                        </div>
+                    </div>
 
                         {/* Calendar Mock */}
                         <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
@@ -116,38 +136,38 @@ export default function Dashboard() {
 
                     {/* At a Glance */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">At a Glance</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('atAGlance')}</h3>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                                 <div className="flex items-center gap-3">
                                     <div className="text-blue-500"><RocketIcon /></div>
-                                    <span className="text-sm font-medium text-gray-700">Highest WPM</span>
+                                    <span className="text-sm font-medium text-gray-700">{t('highestWPM')}</span>
                                 </div>
-                                <span className="text-lg font-bold text-blue-600">85</span>
+                                <span className="text-lg font-bold text-blue-600">{stats.bestWPM}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl border border-blue-100">
                                 <div className="flex items-center gap-3">
                                     <div className="text-blue-600"><CheckCircleIcon /></div>
-                                    <span className="text-sm font-medium text-gray-900">Best Accuracy</span>
+                                    <span className="text-sm font-medium text-gray-900">{t('bestAccuracy')}</span>
                                 </div>
-                                <span className="text-lg font-bold text-blue-600">100%</span>
+                                <span className="text-lg font-bold text-blue-600">{stats.bestAccuracy}%</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                                 <div className="flex items-center gap-3">
                                     <div className="text-gray-500"><ClockIcon /></div>
-                                    <span className="text-sm font-medium text-gray-700">Total Practice Time</span>
+                                    <span className="text-sm font-medium text-gray-700">{t('totalPracticeTime')}</span>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm font-bold text-gray-900">12h</div>
-                                    <div className="text-xs text-gray-500">45m</div>
+                                    <div className="text-sm font-bold text-gray-900">{Math.floor(stats.totalTime / 60)}h</div>
+                                    <div className="text-xs text-gray-500">{stats.totalTime % 60}m</div>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                                 <div className="flex items-center gap-3">
                                     <div className="text-gray-500"><HashIcon /></div>
-                                    <span className="text-sm font-medium text-gray-700">Tests Completed</span>
+                                    <span className="text-sm font-medium text-gray-700">{t('testsCompleted')}</span>
                                 </div>
-                                <span className="text-lg font-bold text-gray-900">312</span>
+                                <span className="text-lg font-bold text-gray-900">{stats.totalLessonsCompleted}</span>
                             </div>
                         </div>
                     </div>
@@ -156,7 +176,7 @@ export default function Dashboard() {
 
             {/* Achievements */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Achievements</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">{t('achievements')}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                     <AchievementCard
                         icon={<SpeedIcon />}

@@ -1,9 +1,13 @@
 import React from 'react';
 import { LESSONS } from '../utils/lessons';
 import { useNavigate } from 'react-router-dom';
+import { useUserData } from '../hooks/useUserData';
+import { useI18n } from '../lib/i18n';
 
 export default function Lessons() {
     const navigate = useNavigate();
+    const { userData } = useUserData(null);
+    const { t } = useI18n();
 
     // Mock data to match the image visuals
     const lessonDetails = [
@@ -34,8 +38,9 @@ export default function Lessons() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {LESSONS.slice(0, 6).map((lesson, index) => {
+                    const lessonProgress = userData.lessons[lesson.id] || null;
                     const details = lessonDetails[index] || { title: lesson.label, desc: `Practice keys: ${lesson.chars}`, status: "Locked", difficulty: "Medium", color: "bg-gray-200" };
-                    const isLocked = details.status === 'Locked';
+                    const isLocked = !lessonProgress || !lessonProgress.completed;
 
                     return (
                         <div key={lesson.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => !isLocked && navigate(`/practice?lesson=${lesson.id}`)}>
@@ -47,6 +52,11 @@ export default function Lessons() {
                                 <div>
                                     <h3 className="font-bold text-gray-900">{`Lesson ${index + 1}: ${details.title}`}</h3>
                                     <p className="text-sm text-gray-500">{details.desc}</p>
+                                    {lessonProgress && (
+                                        <div className="text-xs text-gray-600 mt-2">
+                                            {t('wpm')}: {lessonProgress.wpm || 0} | {t('accuracy')}: {lessonProgress.accuracy || 0}%
+                                        </div>
+                                    )}
                                 </div>
                                 {details.status === 'Completed' && <div className="text-green-500"><CheckCircleIcon /></div>}
                                 {details.status === 'In Progress' && <div className="text-yellow-500"><PlayCircleIcon /></div>}

@@ -1,6 +1,6 @@
 # Story 1.1: Text Display and Input System
 
-Status: review
+Status: ready-for-review
 
 ## Story
 
@@ -43,13 +43,13 @@ so that I can clearly track my typing progress and errors in real-time.
 ## Tasks / Subtasks
 
 ### Review Follow-ups (AI)
-- [ ] [AI-Review][High] Implement comprehensive test suite with actual component testing (AC #1, #2, #3) [file: src/components/__tests__/TypingEngine.test.tsx:1-8]
-- [ ] [AI-Review][High] Add test for character highlighting and cursor positioning [file: src/components/__tests__/TypingEngine.test.tsx]
-- [ ] [AI-Review][High] Add test for correct/incorrect character feedback [file: src/components/__tests__/TypingEngine.test.tsx]
-- [ ] [AI-Review][High] Add test for real-time metrics calculation [file: src/components/__tests__/TypingEngine.test.tsx]
-- [ ] [AI-Review][High] Add test for session completion workflow [file: src/components/__tests__/TypingEngine.test.tsx]
-- [ ] [AI-Review][Medium] Install testing dependencies to enable test execution [file: package.json:16-22]
-- [ ] [AI-Review][Medium] Add performance test for <50ms typing latency requirement [file: src/components/__tests__/TypingEngine.test.tsx]
+- [x] [AI-Review][High] Implement comprehensive test suite with actual component testing (AC #1, #2, #3) [file: src/components/__tests__/TypingEngine.test.tsx:1-468]
+- [x] [AI-Review][High] Add test for character highlighting and cursor positioning [file: src/components/__tests__/TypingEngine.test.tsx:22-85]
+- [x] [AI-Review][High] Add test for correct/incorrect character feedback [file: src/components/__tests__/TypingEngine.test.tsx:87-251]
+- [x] [AI-Review][High] Add test for real-time metrics calculation [file: src/components/__tests__/TypingEngine.test.tsx:426-468]
+- [x] [AI-Review][High] Add test for session completion workflow [file: src/components/__tests__/TypingEngine.test.tsx:253-331]
+- [x] [AI-Review][Medium] Install testing dependencies to enable test execution [file: package.json:16-22]
+- [x] [AI-Review][Medium] Add performance test for <50ms typing latency requirement [file: src/components/__tests__/TypingEngine.test.tsx:468-491]
 - [ ] [AI-Review][Medium] Verify cursor animation smoothness in implementation [file: src/components/TypingEngine.tsx:238-240]
 
 ## Dev Notes

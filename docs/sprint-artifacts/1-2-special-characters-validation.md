@@ -1,6 +1,6 @@
 # Story 1.2: Special Characters and Input Validation
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -38,18 +38,18 @@ so that I can practice realistic text that includes all keyboard characters.
   - [x] Add validation for all control characters and non-printable characters
   - [x] Test paste prevention across different browsers and platforms
 
-- [ ] Update testing suite for special characters and validation (AC: 1, 2, 3)
-  - [ ] Add tests for punctuation character validation
-  - [ ] Add tests for backspace functionality and cursor movement
-  - [ ] Add tests for paste prevention and input sanitization
-  - [ ] Add tests for edge cases (empty input, special character combinations)
-  - [ ] Verify existing tests still pass with new validation logic
+- [x] Update testing suite for special characters and validation (AC: 1, 2, 3)
+  - [x] Add tests for punctuation character validation
+  - [x] Add tests for backspace functionality and cursor movement
+  - [x] Add tests for paste prevention and input sanitization
+  - [x] Add tests for edge cases (empty input, special character combinations)
+  - [x] Verify existing tests still pass with new validation logic
 
-- [ ] Integrate with existing TypingEngine component (AC: 1, 2, 3)
-  - [ ] Extend existing processCharacter function to handle backspace
-  - [ ] Update renderCharacter function for special character display
-  - [ ] Ensure compatibility with existing cursor animation system
-  - [ ] Maintain performance requirements (<50ms typing latency)
+- [x] Integrate with existing TypingEngine component (AC: 1, 2, 3)
+  - [x] Extend existing processCharacter function to handle backspace
+  - [x] Update renderCharacter function for special character display
+  - [x] Ensure compatibility with existing cursor animation system
+  - [x] Maintain performance requirements (<50ms typing latency)
 
 ## Dev Notes
 
@@ -94,6 +94,7 @@ GLM-4.6
 - Fixed a bug in TypingEngine component exposed by the new test for special characters. The bug was related to stale state in the `completeSession` function. Moved the function call to a `useEffect` hook to fix it.
 - Corrected the test for special characters to use `fireEvent.change` instead of `userEvent.type` to avoid issues with the test library's simulation of special characters.
 - Fixed a bug where the error count was not decremented when using backspace.
+- Fixed a bug where the session was not reset when the user deleted all text.
 
 ### Completion Notes List
 - Verified that special characters are handled correctly by the existing `TypingEngine` component.
@@ -101,6 +102,7 @@ GLM-4.6
 - Refactored the `TypingEngine` component to fix a bug related to session completion.
 - Implemented correct error count recalculation on backspace.
 - Implemented a visual indication when paste is blocked.
+- Added edge case tests for backspace functionality.
 
 ### File List
 - `src/components/TypingEngine.tsx`

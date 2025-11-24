@@ -1,7 +1,7 @@
 installation:
   version: 6.0.0-alpha.12
-  installDate: '2025-11-24T04:51:09.883Z'
-  lastUpdated: '2025-11-24T04:51:09.883Z'
+  installDate: '2025-11-24T06:23:05.416Z'
+  lastUpdated: '2025-11-24T06:23:05.416Z'
 modules:
   - core
   - bmb
@@ -9,3 +9,9 @@ modules:
   - cis
 ides:
   - kilo
+  - claude-code
+  - opencode
+  - gemini
+  - antigravity
+  - qwen
+  - roo

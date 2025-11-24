@@ -1,0 +1,149 @@
+<story-context id="story-context-1-2-special-characters-validation" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Special Characters and Input Validation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-24</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-2-special-characters-validation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user</asA>
+    <iWant>type all characters including special characters and punctuation</iWant>
+    <soThat>I can practice realistic text that includes all keyboard characters</soThat>
+    <tasks>Implement comprehensive character mapping and validation (AC: 1)
+  - [ ] Extend character comparison logic to handle all keyboard characters including punctuation
+  - [ ] Add support for special characters: !@#$%^&*()_+-=[]{}|;':",./<>?
+  - [ ] Ensure exact matching requirements for special characters in validation logic
+  - [ ] Update TypeScript interfaces to include all supported character types
+
+Implement backspace functionality with state management (AC: 2)
+  - [ ] Add backspace event handler in TypingEngine component
+  - [ ] Implement proper cursor position tracking when deleting characters
+  - [ ] Update typed text state to remove characters at correct position
+  - [ ] Recalculate accuracy metrics after backspace operations
+  - [ ] Handle edge cases (empty string, first character deletion)
+
+Add input validation and paste prevention (AC: 3)
+  - [ ] Implement paste event handler with preventDefault()
+  - [ ] Add subtle visual indication when paste is blocked
+  - [ ] Ensure input sanitization for XSS prevention
+  - [ ] Add validation for all control characters and non-printable characters
+  - [ ] Test paste prevention across different browsers and platforms
+
+Update testing suite for special characters and validation (AC: 1, 2, 3)
+  - [ ] Add tests for punctuation character validation
+  - [ ] Add tests for backspace functionality and cursor movement
+  - [ ] Add tests for paste prevention and input sanitization
+  - [ ] Add tests for edge cases (empty input, special character combinations)
+  - [ ] Verify existing tests still pass with new validation logic
+
+Integrate with existing TypingEngine component (AC: 1, 2, 3)
+  - [ ] Extend existing processCharacter function to handle backspace
+  - [ ] Update renderCharacter function for special character display
+  - [ ] Ensure compatibility with existing cursor animation system
+  - [ ] Maintain performance requirements (<50ms typing latency)</tasks>
+  </story>
+
+  <acceptanceCriteria>1. Given I am typing text with special characters, when I type punctuation marks like commas, periods, semicolons, then these characters are treated as regular characters and they must be matched exactly in the target text.
+
+2. Given I am typing text, when I use backspace, then the previous character is cleared properly and the cursor moves back one position and typing accuracy is recalculated.
+
+3. Given I am on a typing practice page, when I attempt to paste text, then the paste action is blocked and a subtle message indicates manual typing required.</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Basic Typing Engine Foundation</title>
+        <section>InputValidator Module and Special Characters Handling</section>
+        <snippet>InputValidator: Input sanitization and validation - User keystrokes, paste events - Validated input, error states</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Keyboard Master Brownfield Enhancement Architecture</title>
+        <section>System Architecture Alignment</section>
+        <snippet>This engine integrates seamlessly with the existing React 18 + TypeScript + Tailwind CSS architecture. The component follows the established unidirectional data flow pattern using React Hooks for state management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Keyboard Master - Epic Breakdown</title>
+        <section>Story 1.2: Special Characters and Input Validation</section>
+        <snippet>Story 1.2 covers special characters handling, backspace functionality, and input validation with paste prevention for realistic typing practice.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/components/TypingEngine.tsx</path>
+        <kind>component</kind>
+        <symbol>TypingEngine</symbol>
+        <lines>1-265</lines>
+        <reason>Core typing component to extend with special character validation and backspace functionality</reason>
+      </artifact>
+      <artifact>
+        <path>src/types/typing.ts</path>
+        <kind>interfaces</kind>
+        <symbol>TypingEngineProps, TypingSession, CharacterResult, TypingMetrics</symbol>
+        <lines>1-32</lines>
+        <reason>TypeScript interfaces to extend for new character validation types</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/__tests__/TypingEngine.test.tsx</path>
+        <kind>test</kind>
+        <symbol>TypingEngine tests</symbol>
+        <lines>1-491</lines>
+        <reason>Existing test suite to extend with special character and validation tests</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="react">
+        <package name="react" version="^18.3.1" />
+      </ecosystem>
+      <ecosystem name="typescript">
+        <package name="typescript" version="^5.6.3" />
+      </ecosystem>
+      <ecosystem name="testing">
+        <package name="@testing-library/react" version="^16.3.0" />
+        <package name="jest" version="^29.7.0" />
+      </ecosystem>
+      <ecosystem name="styling">
+        <package name="tailwindcss" version="^3.4.13" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>Follow existing React 18 + TypeScript + Tailwind CSS architecture patterns established in TypingEngine component. Maintain unidirectional data flow using React Hooks for state management. Ensure <50ms typing latency performance requirement is met. Follow established accessibility standards with ARIA labels and screen reader support. Use existing Firebase configuration for any data persistence needs. Maintain compatibility with existing component-based organization within features structure.</constraints>
+
+  <interfaces>
+    <interface name="TypingEngineProps" kind="component-props">
+      <signature>interface TypingEngineProps { targetText: string; onSessionComplete: (session: TypingSession, metrics: TypingMetrics) => void; duration: number; enabled?: boolean; }</signature>
+      <path>src/types/typing.ts</path>
+    </interface>
+    <interface name="CharacterResult" kind="data-interface">
+      <signature>interface CharacterResult { char: string; isCorrect: boolean; position: number; timestamp: number; }</signature>
+      <path>src/types/typing.ts</path>
+    </interface>
+    <interface name="TypingSession" kind="data-interface">
+      <signature>interface TypingSession { id: string; userId: string; targetText: string; typedText: string; startTime: Date; endTime?: Date; duration: number; isPaused: boolean; currentCharIndex: number; }</signature>
+      <path>src/types/typing.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use Jest and React Testing Library following patterns established in existing test suite. Test component behavior, user interactions, and state changes. Ensure accessibility compliance with ARIA labels. Performance test for <50ms typing latency requirement. Test paste prevention across different browsers and platforms.</standards>
+    <locations>src/components/__tests__/TypingEngine.test.tsx</locations>
+    <ideas>
+      <test id="ac1" description="Test punctuation character validation for all special characters: !@#$%^&*()_+-=[]{}|;':",./<>?">
+        <scenario>Given target text contains punctuation, when user types punctuation characters, then characters are validated as regular characters</scenario>
+      </test>
+      <test id="ac2" description="Test backspace functionality and cursor movement">
+        <scenario>Given user has typed characters, when backspace is pressed, then previous character is cleared, cursor moves back, and accuracy is recalculated</scenario>
+      </test>
+      <test id="ac3" description="Test paste prevention and input sanitization">
+        <scenario>Given user attempts to paste text, when paste event occurs, then action is blocked and subtle message shown</scenario>
+      </test>
+    </ideas>
+  </tests>
+</story-context>

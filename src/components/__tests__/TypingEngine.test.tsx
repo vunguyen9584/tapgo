@@ -367,7 +367,7 @@ describe('TypingEngine Component', () => {
   });
 
   describe('Input Validation and Security', () => {
-    test('blocks paste functionality', async () => {
+    test('blocks paste functionality and shows a message', async () => {
       const user = userEvent.setup();
       render(
         <TypingEngine 
@@ -379,15 +379,13 @@ describe('TypingEngine Component', () => {
       const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Attempt to paste text
-      const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
-      Object.defineProperty(pasteEvent, 'preventDefault', {
-        value: jest.fn(),
-        writable: false
-      });
-
-      textarea.dispatchEvent(pasteEvent);
+      await user.paste('some text');
       
-      expect(pasteEvent.preventDefault).toHaveBeenCalled();
+      // Check if the message is displayed
+      expect(screen.getByText('Pasting is disabled!')).toBeInTheDocument();
+      
+      // Check that the text was not pasted
+      expect(textarea).toHaveValue('');
     });
 
     test('handles backspace correctly', async () => {
@@ -421,6 +419,56 @@ describe('TypingEngine Component', () => {
       for (let i = 0; i < 4; i++) {
         expect(characters[i]).toHaveClass('text-green-400');
       }
+    });
+
+    test('decrements error count when backspace is used on an incorrect character', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine
+          targetText="hello"
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      await user.type(textarea, 'xyz');
+
+      const errorsElement = screen.getByText(/Errors:/);
+      const errorsParent = errorsElement.parentElement;
+      expect(errorsParent).toHaveTextContent('Errors: 3');
+
+      await user.keyboard('{Backspace}');
+      
+      expect(errorsParent).toHaveTextContent('Errors: 2');
+    });
+
+    test('handles backspace on empty input', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine
+          targetText="hello"
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      await user.keyboard('{Backspace}');
+      expect(textarea).toHaveValue('');
+    });
+
+    test('handles backspace on the first character', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine
+          targetText="hello"
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      await user.type(textarea, 'h');
+      await user.keyboard('{Backspace}');
+      expect(textarea).toHaveValue('');
+      const characters = screen.getAllByRole('char');
+      expect(characters[0]).toHaveClass('text-gray-500');
     });
   });
 
@@ -489,6 +537,35 @@ describe('TypingEngine Component', () => {
       
       // Should average less than 50ms per character
       expect(avgTimePerChar).toBeLessThan(50);
+    });
+  });
+
+  describe('AC1.2: Special Characters and Punctuation', () => {
+    const specialTargetText = 'a, b; c.d!e@f#g$h%i^j&k*l(m)n_o-p+q=r[s]t{u}v|w';
+
+    test('handles special characters and punctuation correctly', async () => {
+      render(
+        <TypingEngine
+          targetText={specialTargetText}
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      
+      fireEvent.change(textarea, { target: { value: specialTargetText } });
+
+      await waitFor(() => {
+        const characters = screen.getAllByRole('char');
+        characters.forEach(char => {
+          expect(char).toHaveClass('text-green-400');
+        });
+      });
+
+      expect(mockOnSessionComplete).toHaveBeenCalledTimes(1);
+      const [, metrics] = mockOnSessionComplete.mock.calls[0];
+      expect(metrics.accuracy).toBe(100);
+      expect(metrics.incorrectChars).toBe(0);
     });
   });
 });

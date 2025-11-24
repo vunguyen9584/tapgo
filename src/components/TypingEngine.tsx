@@ -13,6 +13,7 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
+  const [showPasteMessage, setShowPasteMessage] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Generate unique session ID
@@ -33,25 +34,22 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     
     const accuracy = totalChars > 0 ? (correctChars / totalChars) * 100 : 100;
     
-    // Calculate WPM based on time elapsed and correct characters
     let wpm = 0;
     let netWpm = 0;
     
     if (startTime && isSessionActive) {
       const timeElapsedMinutes = (Date.now() - startTime.getTime()) / 60000;
       if (timeElapsedMinutes > 0) {
-        // Standard WPM calculation: 5 characters = 1 word
         const wordsTyped = correctChars / 5;
         wpm = wordsTyped / timeElapsedMinutes;
         
-        // Net WPM accounts for errors (uncommon formula: (correct - incorrect) / 5 / minutes)
         const netWords = Math.max(0, correctChars - incorrectChars) / 5;
         netWpm = netWords / timeElapsedMinutes;
       }
     }
     
     return {
-      wpm: Math.round(wpm * 10) / 10, // Round to 1 decimal place
+      wpm: Math.round(wpm * 10) / 10,
       accuracy: Math.round(accuracy * 10) / 10,
       netWpm: Math.round(netWpm * 10) / 10,
       correctChars,
@@ -59,6 +57,28 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
       totalChars
     };
   }, [characterResults, startTime, isSessionActive]);
+
+  const completeSession = useCallback(() => {
+    if (!startTime || !isSessionActive) return;
+    
+    const endTime = new Date();
+    const sessionData: TypingSession = {
+      id: sessionId.current,
+      userId: 'current-user',
+      targetText,
+      typedText: typedText,
+      startTime,
+      endTime,
+      duration: Math.round((endTime.getTime() - startTime.getTime()) / 1000),
+      isPaused: false,
+      currentCharIndex: typedText.length
+    };
+    
+    const metrics = calculateMetrics();
+    setIsSessionActive(false);
+    
+    onSessionComplete(sessionData, metrics);
+  }, [startTime, isSessionActive, targetText, typedText, calculateMetrics, onSessionComplete]);
 
   // Validate and process character input
   const processCharacter = useCallback((newChar: string, position: number): boolean => {
@@ -89,21 +109,25 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     
     const newTypedText = e.target.value.slice(0, targetText.length);
     
-    // Start session on first character if not already started
     if (!isSessionActive && newTypedText.length > 0 && typedText.length === 0) {
       setStartTime(new Date());
       setIsSessionActive(true);
+    } else if (isSessionActive && newTypedText.length === 0) {
+      setIsSessionActive(false);
+      setStartTime(null);
     }
     
-    // Process each character change
     setTypedText(newTypedText);
     setCurrentCharIndex(newTypedText.length);
     
-    // If text was shortened (backspace), recalculate character results
     if (newTypedText.length < typedText.length) {
-      setCharacterResults(prev => prev.slice(0, newTypedText.length));
+      setCharacterResults(prev => {
+        const newCharacterResults = prev.slice(0, newTypedText.length);
+        const newErrorCount = newCharacterResults.filter(r => !r.isCorrect).length;
+        setErrorCount(newErrorCount);
+        return newCharacterResults;
+      });
     } else if (newTypedText.length > typedText.length) {
-      // Process new characters
       const startIndex = typedText.length;
       for (let i = startIndex; i < newTypedText.length; i++) {
         const char = newTypedText[i];
@@ -112,90 +136,67 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
         }
       }
     }
-    
-    // Check if session is complete
-    if (newTypedText.length === targetText.length) {
-      completeSession(newTypedText);
-    }
   }, [enabled, targetText, typedText, isSessionActive, processCharacter]);
 
-  // Complete the current session
-  const completeSession = useCallback((finalTypedText?: string) => {
-    if (!startTime || !isSessionActive) return;
-    
-    const endTime = new Date();
-    const sessionTypedText = finalTypedText || typedText;
-    const sessionData: TypingSession = {
-      id: sessionId.current,
-      userId: 'current-user', // This would come from auth context
-      targetText,
-      typedText: sessionTypedText,
-      startTime,
-      endTime,
-      duration: Math.round((endTime.getTime() - startTime.getTime()) / 1000),
-      isPaused: false,
-      currentCharIndex: sessionTypedText.length
-    };
-    
-    const metrics = calculateMetrics();
-    setIsSessionActive(false);
-    
-    onSessionComplete(sessionData, metrics);
-  }, [startTime, isSessionActive, targetText, typedText, calculateMetrics, onSessionComplete]);
+  // Handle session completion when text is fully typed
+  useEffect(() => {
+    if (isSessionActive && typedText.length === targetText.length) {
+      completeSession();
+    }
+  }, [typedText, targetText, isSessionActive, completeSession]);
 
   // Handle timer completion
   useEffect(() => {
     if (!isSessionActive || !startTime) return;
     
-    const timerDuration = duration * 1000; // Convert to milliseconds
+    const timerDuration = duration * 1000;
     const elapsed = Date.now() - startTime.getTime();
     
     if (elapsed >= timerDuration) {
-      completeSession(typedText);
+      completeSession();
     }
   }, [currentCharIndex, isSessionActive, startTime, duration, completeSession]);
 
   // Handle keyboard events for enhanced control
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!enabled || !isSessionActive) return;
+    if (!enabled) return;
     
-    // Block paste
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
+        setShowPasteMessage(true);
+        setTimeout(() => setShowPasteMessage(false), 2000);
         return;
       }
     }
     
-    // Allow backspace and navigation
     if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       return;
     }
     
-    // Prevent tab and other control characters
     if (e.key === 'Tab') {
       e.preventDefault();
       return;
     }
-  }, [enabled, isSessionActive]);
+  }, [enabled]);
 
   // Block paste events
   const handlePaste = useCallback((e: React.SyntheticEvent) => {
     e.preventDefault();
+    setShowPasteMessage(true);
+    setTimeout(() => setShowPasteMessage(false), 2000);
   }, []);
 
   // Render character with appropriate styling
   const renderCharacter = (char: string, index: number) => {
-    let className = 'text-gray-500'; // Default for untyped characters
+    let className = 'text-gray-500';
     
     if (index < typedText.length) {
-      // Character has been typed
       const result = characterResults[index];
       if (result) {
         className = result.isCorrect ? 'text-green-400' : 'text-red-400';
       }
     } else if (index === currentCharIndex && isSessionActive) {
-      // Current cursor position
       className = 'bg-blue-500 text-white rounded px-0.5 transition-all duration-150';
     }
     
@@ -215,7 +216,6 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
 
   return (
     <div className="relative">
-      {/* Text display area */}
       <div 
         className="font-mono text-2xl leading-relaxed break-words mb-4 p-4 bg-gray-50 rounded-lg"
         role="textbox"
@@ -225,7 +225,6 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
         {targetText.split('').map((char, index) => renderCharacter(char, index))}
       </div>
       
-      {/* Metrics display */}
       <div className="mb-4 p-3 bg-blue-50 rounded-lg" role="status" aria-live="polite">
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
@@ -239,8 +238,14 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
           </div>
         </div>
       </div>
+
+      {showPasteMessage && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+          <strong className="font-bold">Pasting is disabled!</strong>
+          <span className="block sm:inline"> Please type the text manually.</span>
+        </div>
+      )}
       
-      {/* Hidden input area */}
       <textarea
         ref={inputRef}
         value={typedText}

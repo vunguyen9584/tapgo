@@ -1,0 +1,403 @@
+/* CSS Custom Properties for Theme System */
+:root {
+  /* Default Light Theme Colors */
+  --color-primary: #3b82f6;
+  --color-secondary: #64748b;
+  --color-accent: #06b6d4;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* Default Fonts */
+  --font-primary: 'Inter', system-ui, sans-serif;
+  --font-monospace: 'JetBrains Mono', Consolas, monospace;
+  
+  /* Default Animation */
+  --animation-duration: 0.3s;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --color-primary: #60a5fa;
+  --color-secondary: #94a3b8;
+  --color-accent: #22d3ee;
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-border: #334155;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+}
+
+/* Ocean Theme */
+[data-theme="ocean"] {
+  --color-primary: #0891b2;
+  --color-secondary: #0e7490;
+  --color-accent: #06b6d4;
+  --color-background: #f0f9ff;
+  --color-surface: #e0f2fe;
+  --color-text: #0c4a6e;
+  --color-text-secondary: #075985;
+  --color-border: #7dd3fc;
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #0284c7;
+}
+
+/* Forest Theme */
+[data-theme="forest"] {
+  --color-primary: #059669;
+  --color-secondary: #047857;
+  --color-accent: #10b981;
+  --color-background: #f0fdf4;
+  --color-surface: #dcfce7;
+  --color-text: #14532d;
+  --color-text-secondary: #166534;
+  --color-border: #86efac;
+  --color-success: #16a34a;
+  --color-warning: #ea580c;
+  --color-error: #dc2626;
+  --color-info: #0891b2;
+}
+
+/* Sunset Theme */
+[data-theme="sunset"] {
+  --color-primary: #ea580c;
+  --color-secondary: #c2410c;
+  --color-accent: #f97316;
+  --color-background: #fff7ed;
+  --color-surface: #fed7aa;
+  --color-text: #7c2d12;
+  --color-text-secondary: #9a3412;
+  --color-border: #fdba74;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+}
+
+/* Purple Theme */
+[data-theme="purple"] {
+  --color-primary: #9333ea;
+  --color-secondary: #7c3aed;
+  --color-accent: #a855f7;
+  --color-background: #faf5ff;
+  --color-surface: #f3e8ff;
+  --color-text: #581c87;
+  --color-text-secondary: #6b21a8;
+  --color-border: #d8b4fe;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+}
+
+/* Minimal Theme */
+[data-theme="minimal"] {
+  --color-primary: #000000;
+  --color-secondary: #404040;
+  --color-accent: #666666;
+  --color-background: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-text: #000000;
+  --color-text-secondary: #666666;
+  --color-border: #e0e0e0;
+  --color-success: #008000;
+  --color-warning: #ff8c00;
+  --color-error: #ff0000;
+  --color-info: #0000ff;
+}
+
+/* Cyberpunk Theme */
+[data-theme="cyberpunk"] {
+  --color-primary: #ff00ff;
+  --color-secondary: #00ffff;
+  --color-accent: #ff0080;
+  --color-background: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-text: #00ff00;
+  --color-text-secondary: #ff00ff;
+  --color-border: #ff00ff;
+  --color-success: #00ff00;
+  --color-warning: #ffff00;
+  --color-error: #ff0000;
+  --color-info: #00ffff;
+}
+
+/* Animation Controls */
+[data-animations="false"] {
+  --animation-duration: 0s;
+}
+
+[data-animations="true"] {
+  /* Animation duration is set by JavaScript */
+}
+
+/* Theme-aware component styles */
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.bg-accent {
+  background-color: var(--color-accent);
+}
+
+.bg-background {
+  background-color: var(--color-background);
+}
+
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+.bg-success {
+  background-color: var(--color-success);
+}
+
+.bg-warning {
+  background-color: var(--color-warning);
+}
+
+.bg-error {
+  background-color: var(--color-error);
+}
+
+.bg-info {
+  background-color: var(--color-info);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.text-background {
+  color: var(--color-background);
+}
+
+.text-surface {
+  color: var(--color-surface);
+}
+
+.text-text {
+  color: var(--color-text);
+}
+
+.text-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.text-info {
+  color: var(--color-info);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-secondary {
+  border-color: var(--color-secondary);
+}
+
+.border-accent {
+  border-color: var(--color-accent);
+}
+
+.border-background {
+  border-color: var(--color-background);
+}
+
+.border-surface {
+  border-color: var(--color-surface);
+}
+
+.border-text {
+  border-color: var(--color-text);
+}
+
+.border-text-secondary {
+  border-color: var(--color-text-secondary);
+}
+
+.border-success {
+  border-color: var(--color-success);
+}
+
+.border-warning {
+  border-color: var(--color-warning);
+}
+
+.border-error {
+  border-color: var(--color-error);
+}
+
+.border-info {
+  border-color: var(--color-info);
+}
+
+/* Font utilities */
+.font-primary {
+  font-family: var(--font-primary);
+}
+
+.font-monospace {
+  font-family: var(--font-monospace);
+}
+
+/* Animation utilities */
+.transition-theme {
+  transition: all var(--animation-duration) ease-in-out;
+}
+
+.transition-colors {
+  transition: color var(--animation-duration) ease-in-out,
+              background-color var(--animation-duration) ease-in-out,
+              border-color var(--animation-duration) ease-in-out;
+}
+
+.transition-transform {
+  transition: transform var(--animation-duration) ease-in-out;
+}
+
+/* Hover states with theme colors */
+.hover-bg-primary:hover {
+  background-color: var(--color-primary);
+}
+
+.hover-bg-secondary:hover {
+  background-color: var(--color-secondary);
+}
+
+.hover-bg-accent:hover {
+  background-color: var(--color-accent);
+}
+
+.hover-bg-surface:hover {
+  background-color: var(--color-surface);
+}
+
+.hover-text-primary:hover {
+  color: var(--color-primary);
+}
+
+.hover-text-secondary:hover {
+  color: var(--color-secondary);
+}
+
+.hover-text-accent:hover {
+  color: var(--color-accent);
+}
+
+/* Focus states with theme colors */
+.focus-ring-primary:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.focus-ring-secondary:focus {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+.focus-ring-accent:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Theme-specific overrides for better contrast */
+[data-theme="dark"] .text-text {
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .bg-background {
+  background-color: var(--color-background);
+}
+
+[data-theme="cyberpunk"] {
+  /* Add glow effects for cyberpunk theme */
+  --glow-color: var(--color-primary);
+}
+
+[data-theme="cyberpunk"] .glow {
+  box-shadow: 0 0 10px var(--glow-color);
+}
+
+[data-theme="cyberpunk"] .text-glow {
+  text-shadow: 0 0 5px var(--glow-color);
+}
+
+/* Responsive theme adjustments */
+@media (max-width: 768px) {
+  /* Adjust theme colors for mobile if needed */
+  [data-theme="minimal"] {
+    --color-border: #d0d0d0;
+  }
+}
+
+/* Print styles */
+@media print {
+  /* Use minimal theme for printing */
+  :root {
+    --color-background: #ffffff;
+    --color-text: #000000;
+    --color-surface: #f5f5f5;
+    --color-border: #000000;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #000000;
+    --color-text-secondary: var(--color-text);
+  }
+  
+  [data-theme="dark"] {
+    --color-border: #ffffff;
+    --color-text-secondary: var(--color-text);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animation-duration: 0s;
+  }
+  
+  [data-animations="true"] {
+    --animation-duration: 0s;
+  }
+}

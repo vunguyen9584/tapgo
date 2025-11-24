@@ -8,6 +8,11 @@ import Lessons from './pages/Lessons';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Test from './pages/Test';
+import CustomText from './pages/CustomText';
+import NumbersMode from './pages/NumbersMode';
+import CodeMode from './pages/CodeMode';
+import CompetitionMode from './pages/CompetitionMode';
+import Leaderboard from './pages/Leaderboard';
 import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import { ToastContainer, type ToastItem } from './components/Toast';
@@ -57,6 +62,11 @@ export default function App() {
             <Route path="/profile" element={<Profile user={user} />} />
             <Route path="/test" element={<Test />} />
             <Route path="/settings" element={<Settings user={user} />} />
+            <Route path="/custom" element={<CustomText user={user} />} />
+            <Route path="/numbers" element={<NumbersMode user={user} />} />
+            <Route path="/code" element={<CodeMode user={user} />} />
+            <Route path="/competition" element={<CompetitionMode user={user} />} />
+            <Route path="/leaderboard" element={<Leaderboard user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

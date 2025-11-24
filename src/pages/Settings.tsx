@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '../lib/i18n';
 import { saveSettings, loadSettings } from '../lib/firebase';
+import ThemeSelector from '../components/ThemeSelector';
+import '../styles/themes.css';
 
 type SettingsData = {
   theme: 'light' | 'dark';
@@ -104,35 +106,11 @@ export default function Settings({ user }: Props) {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">{t('appearance')}</h2>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('themeSelection')}
-              </label>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => handleSettingChange('theme', 'light')}
-                  className={`px-4 py-2 rounded-md border ${
-                    settings.theme === 'light'
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {t('lightTheme')}
-                </button>
-                <button
-                  onClick={() => handleSettingChange('theme', 'dark')}
-                  className={`px-4 py-2 rounded-md border ${
-                    settings.theme === 'dark'
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {t('darkTheme')}
-                </button>
-              </div>
-            </div>
-
+          <div className="space-y-6">
+            {/* Theme Selector */}
+            <ThemeSelector user={user} />
+            
+            {/* Language Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('languageSelection')}

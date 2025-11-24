@@ -115,25 +115,26 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     
     // Check if session is complete
     if (newTypedText.length === targetText.length) {
-      completeSession();
+      completeSession(newTypedText);
     }
   }, [enabled, targetText, typedText, isSessionActive, processCharacter]);
 
   // Complete the current session
-  const completeSession = useCallback(() => {
+  const completeSession = useCallback((finalTypedText?: string) => {
     if (!startTime || !isSessionActive) return;
     
     const endTime = new Date();
+    const sessionTypedText = finalTypedText || typedText;
     const sessionData: TypingSession = {
       id: sessionId.current,
       userId: 'current-user', // This would come from auth context
       targetText,
-      typedText,
+      typedText: sessionTypedText,
       startTime,
       endTime,
       duration: Math.round((endTime.getTime() - startTime.getTime()) / 1000),
       isPaused: false,
-      currentCharIndex: typedText.length
+      currentCharIndex: sessionTypedText.length
     };
     
     const metrics = calculateMetrics();
@@ -150,7 +151,7 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     const elapsed = Date.now() - startTime.getTime();
     
     if (elapsed >= timerDuration) {
-      completeSession();
+      completeSession(typedText);
     }
   }, [currentCharIndex, isSessionActive, startTime, duration, completeSession]);
 

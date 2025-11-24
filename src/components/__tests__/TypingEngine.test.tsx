@@ -62,8 +62,8 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      // Check if cursor styling classes include transition
-      const textDisplayArea = screen.getByRole('textbox');
+      // Check if cursor styling classes include transition on text display area
+      const textDisplayArea = screen.getByRole('textbox', { name: 'Typing practice text' });
       expect(textDisplayArea).toBeInTheDocument();
       expect(textDisplayArea).toHaveAttribute('aria-label', 'Typing practice text');
     });
@@ -96,7 +96,7 @@ describe('TypingEngine Component', () => {
       );
 
       // Type correct first character 'h'
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       await user.type(textarea, 'h');
 
       const characters = screen.getAllByRole('char');
@@ -115,7 +115,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Type correct characters
       await user.type(textarea, 'he');
@@ -126,7 +126,7 @@ describe('TypingEngine Component', () => {
       expect(characters[1]).toHaveClass('text-green-400');
       
       // Third character should have cursor (current position)
-      expect(characters[2]).toHaveClass('text-gray-500'); // untyped with cursor
+      expect(characters[2]).toHaveClass('bg-blue-500', 'text-white'); // cursor styling
     });
 
     test('updates typing metrics in real-time', async () => {
@@ -143,7 +143,7 @@ describe('TypingEngine Component', () => {
       expect(screen.getByText(/Accuracy:/)).toBeInTheDocument();
       expect(screen.getByText(/Errors:/)).toBeInTheDocument();
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       await user.type(textarea, 'hello');
 
       // Metrics should be displayed after typing
@@ -160,7 +160,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Session should start on first character
       await user.type(textarea, 'h');
@@ -181,7 +181,7 @@ describe('TypingEngine Component', () => {
       );
 
       // Type incorrect character
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       await user.type(textarea, 'x');
 
       const characters = screen.getAllByRole('char');
@@ -200,7 +200,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       await user.type(textarea, 'x');
 
       const characters = screen.getAllByRole('char');
@@ -209,7 +209,7 @@ describe('TypingEngine Component', () => {
       expect(characters[0]).toHaveClass('text-red-400');
       
       // Second character should have cursor (error position)
-      expect(characters[1]).toHaveClass('text-gray-500'); // untyped with cursor
+      expect(characters[1]).toHaveClass('bg-blue-500', 'text-white'); // cursor styling
     });
 
     test('increments error counter for incorrect characters', async () => {
@@ -221,7 +221,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Initial error count should be 0
       const errorsElement = screen.getByText(/Errors:/);
@@ -261,7 +261,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Type entire target text
       await user.type(textarea, targetText);
@@ -301,7 +301,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       await user.type(textarea, targetText);
 
       await waitFor(() => {
@@ -340,9 +340,9 @@ describe('TypingEngine Component', () => {
       );
 
       // Check for proper ARIA attributes
-      const textbox = screen.getByRole('textbox');
-      expect(textbox).toHaveAttribute('aria-label', 'Typing practice text');
-      expect(textbox).toHaveAttribute('aria-live', 'polite');
+      const textbox = screen.getByRole('textbox', { name: 'Type here to practice' });
+      expect(textbox).toHaveAttribute('aria-label', 'Type here to practice');
+      expect(textbox).toHaveAttribute('aria-describedby', 'typing-metrics');
 
       const metricsStatus = screen.getByRole('status');
       expect(metricsStatus).toBeInTheDocument();
@@ -356,7 +356,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Should have proper keyboard attributes
       expect(textarea).toHaveAttribute('autoComplete', 'off');
@@ -376,7 +376,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Attempt to paste text
       const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
@@ -399,7 +399,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Type some characters
       await user.type(textarea, 'hello');
@@ -415,7 +415,7 @@ describe('TypingEngine Component', () => {
       characters = screen.getAllByRole('char');
       
       // Fifth character should be reset to gray (untyped)
-      expect(characters[4]).toHaveClass('text-gray-500');
+      expect(characters[4]).toHaveClass('bg-blue-500', 'text-white'); // cursor styling
       
       // First four characters should remain green
       for (let i = 0; i < 4; i++) {
@@ -441,7 +441,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       await user.type(textarea, 'hello world');
 
       const metrics = screen.getByText(/WPM:/);
@@ -457,7 +457,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Type 5 correct characters and 2 incorrect
       await user.type(textarea, 'helloxxy');
@@ -475,7 +475,7 @@ describe('TypingEngine Component', () => {
         />
       );
 
-      const textarea = screen.getByRole('textbox');
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
       
       // Measure performance of character input
       const startTime = performance.now();

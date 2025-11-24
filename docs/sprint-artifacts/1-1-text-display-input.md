@@ -1,6 +1,6 @@
 # Story 1.1: Text Display and Input System
 
-Status: completed
+Status: ready-for-dev
 
 ## Story
 
@@ -61,7 +61,7 @@ so that I can clearly track my typing progress and errors in real-time.
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/sprint-artifacts/1-1-text-display-input.context.xml
 
 ### Agent Model Used
 

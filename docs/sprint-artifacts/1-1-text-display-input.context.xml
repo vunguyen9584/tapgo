@@ -1,0 +1,148 @@
+<story-context id="1-1-text-display-input" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Text Display and Input System</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-24</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-1-text-display-input.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to see target text with visual feedback as I type</iWant>
+    <soThat>I can clearly track my typing progress and errors in real-time</soThat>
+    <tasks>- Implement TypingEngine component with character-by-character validation (AC: 1, 2, 3)
+  - Set up React state for target text, typed text, and cursor position
+  - Implement character comparison logic for real-time validation
+  - Apply Tailwind CSS classes for correct (green) and incorrect (red) styling
+  - Implement smooth cursor animation between character positions
+- Create TypingSession interface and data models (AC: 1, 2, 3)
+  - Define TypingSession TypeScript interface with session metadata
+  - Define CharacterResult interface for individual character validation
+  - Implement session state management using React hooks
+- Implement visual feedback system (AC: 1, 2, 3)
+  - Create character highlighting logic for correct/incorrect states
+  - Add ARIA labels for accessibility compliance
+  - Implement cursor positioning and animation using CSS transitions
+  - Add error counter display with real-time updates
+- Add accessibility and UX enhancements (AC: 1)
+  - Ensure keyboard navigation support for screen readers
+  - Add proper ARIA labels and descriptions
+  - Test with screen reader compatibility</tasks>
+  </story>
+
+  <acceptanceCriteria>1. Given I am on a typing practice page, when the target text is displayed, then each character is properly rendered with appropriate styling and a cursor shows the current typing position and typed characters are highlighted as correct (green) or incorrect (red) and the cursor animates smoothly between characters.
+
+2. Given I am typing text, when I type a correct character, then the character turns green and the cursor advances and typing metrics update in real-time.
+
+3. Given I am typing text, when I type an incorrect character, then the character turns red with error indication and the cursor stays at the error position and error counter increments.</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Basic Typing Engine Foundation</title>
+        <section>Detailed Design - Services and Modules</section>
+        <snippet>TypingEngine: Core typing logic and character validation. InputValidator: Input sanitization and validation. MetricsCalculator: Real-time performance metrics.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Keyboard Master Brownfield Enhancement Architecture</title>
+        <section>Component Architecture</section>
+        <snippet>React 18 + TypeScript + Tailwind CSS architecture with feature-based organization and Firebase backend integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture/component-architecture.md</path>
+        <title>Component Architecture</title>
+        <section>Component Organization Pattern</section>
+        <snippet>Follow existing feature-based folder structure. Component interfaces with TypeScript, React Hooks for state management.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <code>
+        <path>src/components/TypingArea.tsx</path>
+        <kind>component</kind>
+        <symbol>TypingArea</symbol>
+        <reason>Main typing interface component that will host the new TypingEngine</reason>
+      </code>
+      <code>
+        <path>src/lib/firebase.ts</path>
+        <kind>library</kind>
+        <symbol>Firebase configuration</symbol>
+        <reason>For session data persistence and user authentication</reason>
+      </code>
+    </code>
+    <dependencies>
+      <dependency ecosystem="react" package="react" version="18.3.1" />
+      <dependency ecosystem="react" package="typescript" version="5.6.3" />
+      <dependency ecosystem="styling" package="tailwindcss" version="3.4.13" />
+      <dependency ecosystem="backend" package="firebase" version="10.14.1" />
+      <dependency ecosystem="routing" package="react-router-dom" version="7.9.6" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Must maintain existing Firebase Auth and Firestore integration patterns</constraint>
+    <constraint>Component must follow feature-based organization in src/components/</constraint>
+    <constraint>TypeScript strict mode required - all interfaces must be properly typed</constraint>
+    <constraint>Use Tailwind CSS for styling - no custom CSS unless absolutely necessary</constraint>
+    <constraint>React 18 patterns - use hooks for state management, avoid class components</constraint>
+    <constraint>Performance requirement: typing input latency < 50ms</constraint>
+    <constraint>Accessibility compliance with proper ARIA labels and keyboard navigation</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TypingEngine</name>
+      <kind>React Component Interface</kind>
+      <signature>interface TypingEngineProps {
+  targetText: string;
+  onSessionComplete: (session: TypingSession, metrics: TypingMetrics) => void;
+  duration?: number;
+  enabled?: boolean;
+}</signature>
+      <path>src/components/TypingEngine.tsx</path>
+    </interface>
+    <interface>
+      <name>TypingSession</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface TypingSession {
+  id: string;
+  userId: string;
+  targetText: string;
+  typedText: string;
+  startTime: Date;
+  endTime?: Date;
+  duration: number;
+  isPaused: boolean;
+  currentCharIndex: number;
+}</signature>
+      <path>src/types/typing.ts</path>
+    </interface>
+    <interface>
+      <name>CharacterResult</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface CharacterResult {
+  char: string;
+  isCorrect: boolean;
+  position: number;
+  timestamp: number;
+}</signature>
+      <path>src/types/typing.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Jest and React Testing Library framework with co-located test files. Target 80% coverage for new components. Test accessibility with screen reader simulation.</standards>
+    <locations>__tests__ folders alongside components, or .test.tsx files co-located with components</locations>
+    <ideas>
+      <test ac="1">Test character rendering and cursor positioning - verify target text displays correctly with cursor at initial position</test>
+      <test ac="2">Test correct character feedback - verify green highlighting and cursor advancement when typing correct characters</test>
+      <test ac="3">Test incorrect character feedback - verify red highlighting and error counter when typing incorrect characters</test>
+      <test>Performance test - ensure typing input latency is under 50ms with rapid typing simulation</test>
+      <test>Accessibility test - verify ARIA labels are properly applied for screen reader compatibility</test>
+    </ideas>
+  </tests>
+</story-context>

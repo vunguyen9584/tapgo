@@ -18,6 +18,7 @@ development_status:
   2-2-word-character-modes: "ready-for-dev"
   2-3-lesson-mode-progression: "ready-for-dev"
   2-4-code-mode-developers: "ready-for-dev"
+  2-5-numbers-mode-implementation: "ready-for-dev"
   epic-3: "backlog"
   epic-4: "backlog"
   epic-5: "backlog"
@@ -38,6 +39,7 @@ epic_metadata:
       - "2-2-word-character-modes: ready-for-dev"
       - "2-3-lesson-mode-progression: ready-for-dev"
       - "2-4-code-mode-developers: ready-for-dev"
+      - "2-5-numbers-mode-implementation: ready-for-dev"
   epic-3:
     title: "User Management & Authentication"
     description: "User authentication and profile management system"

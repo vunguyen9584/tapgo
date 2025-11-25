@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../lib/i18n';
 
-export type TypingMode = 'practice' | 'test' | 'custom' | 'numbers' | 'code' | 'competition';
+export type TypingMode = 'practice' | 'test' | 'custom' | 'numbers' | 'code' | 'quote' | 'competition';
 
 interface Mode {
   id: TypingMode;
@@ -27,6 +27,13 @@ const modes: Mode[] = [
     title: 'practice',
     description: 'practiceDescription',
     icon: '📝',
+    difficulty: 'easy',
+  },
+  {
+    id: 'quote',
+    title: 'quoteMode',
+    description: 'quoteModeDescription',
+    icon: '💬',
     difficulty: 'easy',
   },
   {

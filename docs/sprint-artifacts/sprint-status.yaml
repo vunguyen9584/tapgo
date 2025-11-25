@@ -14,7 +14,7 @@ development_status:
   1-3-real-time-metrics: "done"
   1-4-timer-session-management: "done"
   epic-2: "backlog" 
-  2-1-quote-mode-implementation: "ready-for-dev"
+  2-1-quote-mode-implementation: "review"
   2-2-word-character-modes: "ready-for-dev"
   2-3-lesson-mode-progression: "ready-for-dev"
   2-4-code-mode-developers: "ready-for-dev"

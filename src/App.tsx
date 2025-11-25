@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Practice from './pages/Practice';
+import Quote from './pages/Quote';
 import Lessons from './pages/Lessons';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
@@ -58,6 +59,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard user={user} />} />
             <Route path="/practice" element={<Practice />} />
+            <Route path="/quote" element={<Quote />} />
             <Route path="/lessons" element={<Lessons />} />
             <Route path="/profile" element={<Profile user={user} />} />
             <Route path="/test" element={<Test />} />

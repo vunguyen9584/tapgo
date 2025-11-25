@@ -19,3 +19,6 @@ export type LessonProgress = {
 
 export type LessonsProgressMap = Record<string, LessonProgress | undefined>;
 
+// Re-export quote types for convenience
+export type { Quote, QuoteSession, QuoteStats } from './quotes';
+

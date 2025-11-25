@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { TypingEngineProps, TypingSession, CharacterResult, TypingMetrics } from '../types/typing';
+import type { TypingEngineProps, TypingSession, CharacterResult, TypingMetrics, TimerState, SessionStatus } from '../types/typing';
 
 const TypingEngine: React.FC<TypingEngineProps> = ({
   targetText,
   onSessionComplete,
   duration = 60,
-  enabled = true
+  enabled = true,
+  onTimerStart,
+  onTimerPause,
+  onTimerResume,
+  onTimerComplete
 }) => {
   const [typedText, setTypedText] = useState('');
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
@@ -22,10 +26,112 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     incorrectChars: 0,
     totalChars: 0
   });
+  const [timerState, setTimerState] = useState<TimerState>({
+    remainingTime: duration,
+    isRunning: false,
+    isPaused: false,
+    hasStarted: false,
+    duration: duration
+  });
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>('not-started');
+  const [showDurationSelector, setShowDurationSelector] = useState(true);
+  const [selectedDuration, setSelectedDuration] = useState(duration);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Generate unique session ID
   const sessionId = useRef(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+
+  // Available duration options
+  const durationOptions = [15, 30, 60, 120];
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Handle duration selection
+  const handleDurationSelect = useCallback((newDuration: number) => {
+    if (timerState.hasStarted) return; // Can't change duration after session starts
+    
+    setSelectedDuration(newDuration);
+    setTimerState(prev => ({
+      ...prev,
+      duration: newDuration,
+      remainingTime: newDuration
+    }));
+  }, [timerState.hasStarted]);
+
+  // Start timer on first character input
+  const startTimer = useCallback(() => {
+    if (timerState.hasStarted) return;
+    
+    setTimerState(prev => ({
+      ...prev,
+      hasStarted: true,
+      isRunning: true,
+      isPaused: false,
+      remainingTime: prev.duration
+    }));
+    setSessionStatus('in-progress');
+    setShowDurationSelector(false);
+    setStartTime(new Date());
+    setIsSessionActive(true);
+    
+    if (onTimerStart) {
+      onTimerStart();
+    }
+  }, [timerState.hasStarted, timerState.duration, onTimerStart]);
+
+  // Pause timer (for sessions > 60 seconds)
+  const pauseTimer = useCallback(() => {
+    if (selectedDuration <= 60) return; // Only allow pause for sessions > 60 seconds
+    if (!timerState.isRunning || timerState.isPaused) return;
+    
+    setTimerState(prev => ({
+      ...prev,
+      isRunning: false,
+      isPaused: true
+    }));
+    setSessionStatus('paused');
+    
+    if (onTimerPause) {
+      onTimerPause();
+    }
+  }, [selectedDuration, timerState.isRunning, timerState.isPaused, onTimerPause]);
+
+  // Resume timer
+  const resumeTimer = useCallback(() => {
+    if (!timerState.isPaused) return;
+    
+    setTimerState(prev => ({
+      ...prev,
+      isRunning: true,
+      isPaused: false
+    }));
+    setSessionStatus('in-progress');
+    
+    if (onTimerResume) {
+      onTimerResume();
+    }
+  }, [timerState.isPaused, onTimerResume]);
+
+  // Complete timer/session
+  const completeTimer = useCallback(() => {
+    setTimerState(prev => ({
+      ...prev,
+      isRunning: false,
+      isPaused: false,
+      hasStarted: true,
+      remainingTime: 0
+    }));
+    setSessionStatus('completed');
+    
+    if (onTimerComplete) {
+      onTimerComplete();
+    }
+  }, [onTimerComplete]);
 
   // Calculate real-time metrics
   const calculateMetrics = useCallback((): TypingMetrics => {
@@ -68,7 +174,7 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
 
   // Real-time metrics update with 100ms intervals
   useEffect(() => {
-    if (!isSessionActive) {
+    if (!timerState.isRunning) {
       return;
     }
 
@@ -80,7 +186,37 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     return () => {
       clearInterval(metricsUpdateInterval);
     };
-  }, [isSessionActive, calculateMetrics]);
+  }, [timerState.isRunning, calculateMetrics]);
+
+  // Timer countdown effect (1-second intervals)
+  useEffect(() => {
+    if (!timerState.isRunning) {
+      return;
+    }
+
+    const timerInterval = setInterval(() => {
+      setTimerState(prev => {
+        if (prev.remainingTime <= 1) {
+          // Timer expired
+          completeTimer();
+          return {
+            ...prev,
+            remainingTime: 0,
+            isRunning: false
+          };
+        }
+        
+        return {
+          ...prev,
+          remainingTime: prev.remainingTime - 1
+        };
+      });
+    }, 1000); // 1-second countdown
+
+    return () => {
+      clearInterval(timerInterval);
+    };
+  }, [timerState.isRunning, completeTimer]);
 
   // Update metrics immediately when character results change
   useEffect(() => {
@@ -89,8 +225,9 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
   }, [characterResults, calculateMetrics]);
 
   const completeSession = useCallback(() => {
-    if (!startTime || !isSessionActive) return;
+    if (!startTime) return;
     
+    completeTimer();
     const endTime = new Date();
     const sessionData: TypingSession = {
       id: sessionId.current,
@@ -108,7 +245,7 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     setIsSessionActive(false);
     
     onSessionComplete(sessionData, metrics);
-  }, [startTime, isSessionActive, targetText, typedText, calculateMetrics, onSessionComplete]);
+  }, [startTime, targetText, typedText, calculateMetrics, onSessionComplete, completeTimer]);
 
   // Validate and process character input
   const processCharacter = useCallback((newChar: string, position: number): boolean => {
@@ -139,12 +276,13 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     
     const newTypedText = e.target.value.slice(0, targetText.length);
     
-    if (!isSessionActive && newTypedText.length > 0 && typedText.length === 0) {
-      setStartTime(new Date());
-      setIsSessionActive(true);
-    } else if (isSessionActive && newTypedText.length === 0) {
-      setIsSessionActive(false);
-      setStartTime(null);
+    // Auto-start timer on first character input (non-character keys won't trigger this)
+    if (!timerState.hasStarted && newTypedText.length > 0 && typedText.length === 0) {
+      // Only start on actual character input, not control keys
+      const firstChar = newTypedText[newTypedText.length - 1];
+      if (firstChar && firstChar.length === 1 && (!/[^\x20-\x7E]/.test(firstChar) || /[a-zA-Z0-9\s.,!?;:'"-]/.test(firstChar))) {
+        startTimer();
+      }
     }
     
     setTypedText(newTypedText);
@@ -166,26 +304,21 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
         }
       }
     }
-  }, [enabled, targetText, typedText, isSessionActive, processCharacter]);
+  }, [enabled, targetText, typedText, timerState.hasStarted, startTimer, processCharacter]);
 
   // Handle session completion when text is fully typed
   useEffect(() => {
-    if (isSessionActive && typedText.length === targetText.length) {
+    if (timerState.hasStarted && typedText.length === targetText.length) {
       completeSession();
     }
-  }, [typedText, targetText, isSessionActive, completeSession]);
+  }, [typedText, targetText, timerState.hasStarted, completeSession]);
 
-  // Handle timer completion
+  // Handle timer completion via countdown
   useEffect(() => {
-    if (!isSessionActive || !startTime) return;
-    
-    const timerDuration = duration * 1000;
-    const elapsed = Date.now() - startTime.getTime();
-    
-    if (elapsed >= timerDuration) {
+    if (timerState.hasStarted && timerState.remainingTime === 0 && !timerState.isRunning) {
       completeSession();
     }
-  }, [currentCharIndex, isSessionActive, startTime, duration, completeSession]);
+  }, [timerState.hasStarted, timerState.remainingTime, timerState.isRunning, completeSession]);
 
   // Handle keyboard events for enhanced control
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -226,7 +359,7 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
       if (result) {
         className = result.isCorrect ? 'text-green-400' : 'text-red-400';
       }
-    } else if (index === currentCharIndex && isSessionActive) {
+    } else if (index === currentCharIndex && timerState.hasStarted && !timerState.isPaused) {
       className = 'bg-blue-500 text-white rounded px-0.5 transition-all duration-150';
     }
     
@@ -244,6 +377,78 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
 
   return (
     <div className="relative">
+      {/* Duration Selector */}
+      {showDurationSelector && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg" role="region" aria-label="Duration selection">
+          <h3 className="text-lg font-semibold mb-3">Chọn thời gian luyện tập:</h3>
+          <div className="grid grid-cols-4 gap-3">
+            {durationOptions.map((option) => (
+              <button
+                key={option}
+                onClick={() => handleDurationSelect(option)}
+                disabled={timerState.hasStarted}
+                className={`p-3 rounded-lg font-medium transition-colors ${
+                  selectedDuration === option
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                } ${timerState.hasStarted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                aria-pressed={selectedDuration === option}
+                aria-disabled={timerState.hasStarted}
+              >
+                {option}s
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Timer Display */}
+      {!showDurationSelector && (
+        <div className={`mb-4 p-4 rounded-lg ${sessionStatus === 'paused' ? 'bg-yellow-50' : 'bg-green-50'}`} role="status" aria-live="polite">
+          <div className="flex justify-between items-center">
+            <div className="text-xl font-mono font-bold">
+              {formatTime(timerState.remainingTime)}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                sessionStatus === 'in-progress' ? 'bg-green-200 text-green-800' :
+                sessionStatus === 'paused' ? 'bg-yellow-200 text-yellow-800' :
+                'bg-gray-200 text-gray-800'
+              }`}>
+                {sessionStatus === 'in-progress' ? 'Đang diễn ra' :
+                 sessionStatus === 'paused' ? 'Tạm dừng' :
+                 'Chưa bắt đầu'}
+              </span>
+              {/* Pause/Resume controls for sessions > 60 seconds */}
+              {selectedDuration > 60 && sessionStatus === 'in-progress' && (
+                <button
+                  onClick={pauseTimer}
+                  className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+                  aria-label="Tạm dừng phiên"
+                >
+                  Tạm dừng
+                </button>
+              )}
+              {selectedDuration > 60 && sessionStatus === 'paused' && (
+                <button
+                  onClick={resumeTimer}
+                  className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  aria-label="Tiếp tục phiên"
+                >
+                  Tiếp tục
+                </button>
+              )}
+            </div>
+          </div>
+          {/* Time warning indicator */}
+          {timerState.remainingTime <= 10 && timerState.remainingTime > 0 && sessionStatus === 'in-progress' && (
+            <div className="mt-2 text-red-600 font-medium animate-pulse">
+              ⚠️ Sắp hết thời gian!
+            </div>
+          )}
+        </div>
+      )}
+
       <div 
         className="font-mono text-2xl leading-relaxed break-words mb-4 p-4 bg-gray-50 rounded-lg"
         role="textbox"

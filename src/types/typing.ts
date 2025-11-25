@@ -31,4 +31,18 @@ export interface TypingEngineProps {
   onSessionComplete: (session: TypingSession, metrics: TypingMetrics) => void;
   duration?: number;
   enabled?: boolean;
+  onTimerStart?: () => void;
+  onTimerPause?: () => void;
+  onTimerResume?: () => void;
+  onTimerComplete?: () => void;
 }
+
+export interface TimerState {
+  remainingTime: number;
+  isRunning: boolean;
+  isPaused: boolean;
+  hasStarted: boolean;
+  duration: number;
+}
+
+export type SessionStatus = 'not-started' | 'in-progress' | 'paused' | 'completed';

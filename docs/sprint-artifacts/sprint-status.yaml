@@ -15,6 +15,7 @@ development_status:
   1-4-timer-session-management: "done"
   epic-2: "backlog" 
   2-1-quote-mode-implementation: "ready-for-dev"
+  2-2-word-character-modes: "ready-for-dev"
   epic-3: "backlog"
   epic-4: "backlog"
   epic-5: "backlog"
@@ -32,6 +33,7 @@ epic_metadata:
     stories_count: 5
     stories:
       - "2-1-quote-mode-implementation: ready-for-dev"
+      - "2-2-word-character-modes: ready-for-dev"
   epic-3:
     title: "User Management & Authentication"
     description: "User authentication and profile management system"

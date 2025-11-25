@@ -14,17 +14,18 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
   const [showPasteMessage, setShowPasteMessage] = useState(false);
+  const [currentMetrics, setCurrentMetrics] = useState<TypingMetrics>({
+    wpm: 0,
+    accuracy: 100,
+    netWpm: 0,
+    correctChars: 0,
+    incorrectChars: 0,
+    totalChars: 0
+  });
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Generate unique session ID
   const sessionId = useRef(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
-
-  // Focus input on mount and when enabled changes
-  useEffect(() => {
-    if (enabled && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [enabled]);
 
   // Calculate real-time metrics
   const calculateMetrics = useCallback((): TypingMetrics => {
@@ -57,6 +58,35 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
       totalChars
     };
   }, [characterResults, startTime, isSessionActive]);
+
+  // Focus input on mount and when enabled changes
+  useEffect(() => {
+    if (enabled && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [enabled]);
+
+  // Real-time metrics update with 100ms intervals
+  useEffect(() => {
+    if (!isSessionActive) {
+      return;
+    }
+
+    const metricsUpdateInterval = setInterval(() => {
+      const metrics = calculateMetrics();
+      setCurrentMetrics(metrics);
+    }, 100); // 100ms update frequency for smooth real-time display
+
+    return () => {
+      clearInterval(metricsUpdateInterval);
+    };
+  }, [isSessionActive, calculateMetrics]);
+
+  // Update metrics immediately when character results change
+  useEffect(() => {
+    const metrics = calculateMetrics();
+    setCurrentMetrics(metrics);
+  }, [characterResults, calculateMetrics]);
 
   const completeSession = useCallback(() => {
     if (!startTime || !isSessionActive) return;
@@ -212,8 +242,6 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
     );
   };
 
-  const currentMetrics = calculateMetrics();
-
   return (
     <div className="relative">
       <div 
@@ -226,7 +254,7 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
       </div>
       
       <div className="mb-4 p-3 bg-blue-50 rounded-lg" role="status" aria-live="polite">
-        <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
             <span className="font-semibold">WPM:</span> {currentMetrics.wpm}
           </div>
@@ -234,7 +262,21 @@ const TypingEngine: React.FC<TypingEngineProps> = ({
             <span className="font-semibold">Accuracy:</span> {currentMetrics.accuracy}%
           </div>
           <div>
+            <span className="font-semibold">Net WPM:</span> {currentMetrics.netWpm}
+          </div>
+          <div>
             <span className="font-semibold">Errors:</span> {errorCount}
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4 text-sm mt-2">
+          <div>
+            <span className="font-semibold">Correct:</span> {currentMetrics.correctChars}
+          </div>
+          <div>
+            <span className="font-semibold">Incorrect:</span> {currentMetrics.incorrectChars}
+          </div>
+          <div>
+            <span className="font-semibold">Total:</span> {currentMetrics.totalChars}
           </div>
         </div>
       </div>

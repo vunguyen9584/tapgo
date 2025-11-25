@@ -514,6 +514,83 @@ describe('TypingEngine Component', () => {
       expect(accuracyText.parentElement).toHaveTextContent(/Accuracy: \d+\.?\d*%/);
     });
 
+    test('updates metrics in real-time with 100ms intervals', async () => {
+      const user = userEvent.setup();
+      
+      // Mock Date.now to simulate time progression
+      let timeValue = 1000000;
+      jest.spyOn(Date, 'now').mockImplementation(() => {
+        timeValue += 100; // Increment by 100ms each call
+        return timeValue;
+      });
+
+      render(
+        <TypingEngine 
+          targetText="the quick brown fox" 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      
+      // Type first character to start session
+      await user.type(textarea, 't');
+
+      // Initial WPM should be 0 (time too short)
+      expect(screen.getByText(/WPM:/).parentElement).toHaveTextContent('WPM: 0');
+      
+      // Type more characters
+      await user.type(textarea, 'he quick');
+      
+      // WPM should be calculated and updated
+      const wpmText = screen.getByText(/WPM:/).parentElement;
+      expect(wpmText).toHaveTextContent(/WPM: \d+/);
+    });
+
+    test('displays all character-level statistics', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine 
+          targetText={targetText} 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      
+      // Type mix of correct and incorrect characters
+      await user.type(textarea, 'helloxyz');
+
+      // Check that all character statistics are displayed
+      expect(screen.getByText(/Correct:/)).toBeInTheDocument();
+      expect(screen.getByText(/Incorrect:/)).toBeInTheDocument();
+      expect(screen.getByText(/Total:/)).toBeInTheDocument();
+      
+      // Verify the counts are reasonable
+      expect(screen.getByText(/Correct:/).parentElement).toHaveTextContent(/Correct: \d+/);
+      expect(screen.getByText(/Incorrect:/).parentElement).toHaveTextContent(/Incorrect: \d+/);
+      expect(screen.getByText(/Total:/).parentElement).toHaveTextContent(/Total: \d+/);
+    });
+
+    test('calculates net WPM correctly', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine 
+          targetText="hello world" 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      
+      // Type with some errors to test net WPM calculation
+      await user.type(textarea, 'hello wxrld');
+
+      // Net WPM should be displayed
+      expect(screen.getByText(/Net WPM:/)).toBeInTheDocument();
+      expect(screen.getByText(/Net WPM:/).parentElement).toHaveTextContent(/Net WPM: \d+\.?\d*/);
+    });
+
     test('meets <50ms typing latency requirement', async () => {
       const user = userEvent.setup();
       render(
@@ -537,6 +614,97 @@ describe('TypingEngine Component', () => {
       
       // Should average less than 50ms per character
       expect(avgTimePerChar).toBeLessThan(50);
+    });
+
+    test('handles edge case for zero characters typed', () => {
+      render(
+        <TypingEngine 
+          targetText="" 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      // Should display initial metrics safely
+      expect(screen.getByText(/WPM:/)).toBeInTheDocument();
+      expect(screen.getByText(/Accuracy:/)).toBeInTheDocument();
+      expect(screen.getByText(/Net WPM:/)).toBeInTheDocument();
+      expect(screen.getByText(/Errors:/)).toBeInTheDocument();
+      expect(screen.getByText(/Correct:/)).toBeInTheDocument();
+      expect(screen.getByText(/Incorrect:/)).toBeInTheDocument();
+      expect(screen.getByText(/Total:/)).toBeInTheDocument();
+    });
+
+    test('maintains accuracy at 100% when no characters are typed', () => {
+      render(
+        <TypingEngine 
+          targetText="sample text" 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      // Accuracy should be 100% before any typing
+      expect(screen.getByText(/Accuracy:/).parentElement).toHaveTextContent('Accuracy: 100%');
+    });
+
+    test('updates metrics immediately on character changes', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine 
+          targetText="hello" 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      
+      // Before typing - all counts should be 0
+      expect(screen.getByText(/Total:/).parentElement).toHaveTextContent('Total: 0');
+      expect(screen.getByText(/Correct:/).parentElement).toHaveTextContent('Correct: 0');
+      expect(screen.getByText(/Incorrect:/).parentElement).toHaveTextContent('Incorrect: 0');
+      
+      // Type one correct character
+      await user.type(textarea, 'h');
+      
+      // After typing - counts should be updated immediately
+      expect(screen.getByText(/Total:/).parentElement).toHaveTextContent('Total: 1');
+      expect(screen.getByText(/Correct:/).parentElement).toHaveTextContent('Correct: 1');
+      expect(screen.getByText(/Incorrect:/).parentElement).toHaveTextContent('Incorrect: 0');
+      
+      // Type one incorrect character
+      await user.type(textarea, 'x');
+      
+      // After incorrect typing - counts should update
+      expect(screen.getByText(/Total:/).parentElement).toHaveTextContent('Total: 2');
+      expect(screen.getByText(/Correct:/).parentElement).toHaveTextContent('Correct: 1');
+      expect(screen.getByText(/Incorrect:/).parentElement).toHaveTextContent('Incorrect: 1');
+    });
+
+    test('recalculates character statistics on backspace', async () => {
+      const user = userEvent.setup();
+      render(
+        <TypingEngine 
+          targetText="hello" 
+          onSessionComplete={mockOnSessionComplete}
+        />
+      );
+
+      const textarea = screen.getByRole('textbox', { name: 'Type here to practice' });
+      
+      // Type characters including an error
+      await user.type(textarea, 'hex');
+      
+      // Verify counts
+      expect(screen.getByText(/Total:/).parentElement).toHaveTextContent('Total: 3');
+      expect(screen.getByText(/Correct:/).parentElement).toHaveTextContent('Correct: 1');
+      expect(screen.getByText(/Incorrect:/).parentElement).toHaveTextContent('Incorrect: 2');
+      
+      // Use backspace to delete last character
+      await user.keyboard('{Backspace}');
+      
+      // Should recalculate counts
+      expect(screen.getByText(/Total:/).parentElement).toHaveTextContent('Total: 2');
+      expect(screen.getByText(/Correct:/).parentElement).toHaveTextContent('Correct: 1');
+      expect(screen.getByText(/Incorrect:/).parentElement).toHaveTextContent('Incorrect: 1');
     });
   });
 

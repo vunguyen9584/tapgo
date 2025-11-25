@@ -1,0 +1,119 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>Timer and Session Management</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-25</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-4-timer-session-management.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to control session timing and have automatic session completion</iWant>
+    <soThat>I can practice for specific durations and have consistent session management</soThat>
+    <tasks>- [ ] Implement timer duration configuration system (AC: 1)
+  - [ ] Add duration selection component with 15, 30, 60, 120 second options
+  - [ ] Add state management for selected duration and timer configuration
+  - [ ] Display selected duration prominently before session starts
+  - [ ] Initialize timer with selected duration
+  - [ ] Add duration validation and default value handling
+
+- [ ] Implement auto-start timer functionality (AC: 2)
+  - [ ] Add first keystroke detection logic
+  - [ ] Implement timer start mechanism triggered by first character input
+  - [ ] Update session status to "In Progress" when timer starts
+  - [ ] Ensure timer doesn't start on non-character keys (shift, ctrl, etc.)
+  - [ ] Add visual indication that session is active
+
+- [ ] Implement real-time countdown display (AC: 2)
+  - [ ] Add countdown timer with 1-second update intervals
+  - [ ] Display remaining time in MM:SS format
+  - [ ] Update countdown display in real-time during session
+  - [ ] Add time-based visual indicators (warning when time is low)
+  - [ ] Ensure countdown synchronization with metrics updates
+
+- [ ] Implement automatic session completion (AC: 3)
+  - [ ] Add time expiration detection logic
+  - [ ] Integrate timer completion with existing completeSession function
+  - [ ] Ensure session completion triggers final results display
+  - [ ] Maintain all session data in Firebase storage on completion
+  - [ ] Handle edge cases (completion exactly at time expiration)
+
+- [ ] Implement pause/resume functionality for longer sessions (AC: 4)
+  - [ ] Add pause/resume controls for sessions > 60 seconds
+  - [ ] Implement timer state preservation during pause
+  - [ ] Maintain typed text, cursor position, and metrics during pause
+  - [ ] Update session status appropriately during pause/resume
+  - [ ] Add visual indicators for paused state
+  - [ ] Ensure pause/resume doesn't affect final metrics calculation
+
+- [ ] Add comprehensive testing for timer and session management (AC: 1, 2, 3, 4)
+  - [ ] Add tests for duration configuration and selection
+  - [ ] Add tests for auto-start functionality on first keystroke
+  - [ ] Add tests for countdown display and time tracking
+  - [ ] Add tests for automatic session completion on time expiration
+  - [ ] Add tests for pause/resume functionality and state preservation
+  - [ ] Add tests for edge cases and error handling
+  - [ ] Verify performance requirements (no impact on <50ms typing latency)
+
+- [ ] Integrate timer system with existing TypingEngine component (AC: 1, 2, 3, 4)
+  - [ ] Extend TypingEngine state with timer variables and session status
+  - [ ] Integrate timer lifecycle with existing input handling and metrics calculation
+  - [ ] Add timer display to existing TypingEngine UI
+  - [ ] Ensure compatibility with existing cursor, validation, and metrics systems
+  - [ ] Maintain existing performance and accessibility standards
+  - [ ] Update session completion workflow to handle timer-based completion</tasks>
+  </story>
+
+  <acceptanceCriteria>1. Given I am setting up a typing session, when I select a time duration (15, 30, 60, 120 seconds), then the timer is configured and displays the selected duration.
+
+2. Given I start typing, when I type the first character, then the timer begins automatically on first keystroke and countdown displays remaining time and session status shows "In Progress".
+
+3. Given time expires or text is completed, when the session reaches completion conditions, then the session automatically completes and final results are displayed and session data is saved to user profile.
+
+4. Given I am using longer sessions (>60 seconds), when I need to pause, then pause/resume functionality is available and timer state is preserved during pause.</acceptanceCriteria>
+
+  <artifacts>
+    <docs><doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Epic Technical Specification: Basic Typing Engine Foundation" section="Timer Events and Workflows" snippet="Timer events interface defines onStart, onPause, onResume, onComplete callbacks. Session management workflow includes auto-start on first keystroke, pause/resume handling, and automatic completion on time/text completion."/><doc path="docs/architecture.md" title="System Architecture" section="Component Architecture" snippet="React 18 + TypeScript + Tailwind CSS architecture with component-based organization, unidirectional data flow using React Hooks, and Firebase integration for data persistence."/><doc path="docs/epics.md" title="Epic Breakdown" section="Story 1.4: Timer and Session Management" snippet="Timer and session management requirements including duration selection, auto-start functionality, countdown display, automatic completion, and pause/resume for longer sessions."/></docs>
+    <code><file path="src/components/TypingEngine.tsx" kind="component" symbol="TypingEngine" lines="1-311" reason="Main component to extend with timer functionality - currently handles typing input, character validation, metrics calculation, and basic session management"/><file path="src/types/typing.ts" kind="interfaces" symbol="TypingEngineProps, TypingSession, TypingMetrics" lines="1-30" reason="TypeScript interfaces to extend with timer-related properties - current interface includes duration prop and session structure"/><file path="src/components/__tests__/TypingEngine.test.tsx" kind="test" symbol="TypingEngine Tests" lines="1-740" reason="Existing test suite to extend with timer functionality tests - currently covers text display, input validation, and metrics calculation"/></code>
+    <dependencies>{"frontend": {"react": "18.3.1", "typescript": "5.6.3", "tailwindcss": "3.4.13"}, "testing": {"@testing-library/react": "16.3.0", "@testing-library/user-event": "14.6.1", "jest": "29.7.0"}, "backend": {"firebase": "10.14.1"}}</dependencies>
+  </artifacts>
+
+  <constraints>- Use React 18 with TypeScript following established component patterns
+- Maintain unidirectional data flow using useState and useEffect hooks
+- Integrate with existing Firebase configuration for session data persistence
+- Follow existing Tailwind CSS styling patterns for timer display and controls
+- Ensure timer management doesn't impact <50ms typing latency requirement
+- Use existing session completion workflow (completeSession function)
+- Maintain accessibility standards with proper ARIA labels for timer controls
+- Follow established test patterns in Jest with React Testing Library
+- Preserve all existing functionality when adding timer features</constraints>
+  <interfaces><interface name="TypingEngineProps" kind="React Component Props" signature="interface TypingEngineProps {
+  targetText: string;
+  onSessionComplete: (session: TypingSession, metrics: TypingMetrics) => void;
+  duration?: number;
+  enabled?: boolean;
+}" path="src/types/typing.ts"/><interface name="TypingSession" kind="TypeScript Interface" signature="interface TypingSession {
+  id: string;
+  userId: string;
+  targetText: string;
+  typedText: string;
+  startTime: Date;
+  endTime?: Date;
+  duration: number;
+  isPaused: boolean;
+  currentCharIndex: number;
+}" path="src/types/typing.ts"/><interface name="TimerEvents" kind="TypeScript Interface" signature="interface TimerEvents {
+  onStart: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onComplete: () => void;
+}" path="docs/sprint-artifacts/tech-spec-epic-1.md"/></interfaces>
+  <tests>
+    <standards>Use Jest with React Testing Library following existing test patterns. Test component behavior, user interactions, state changes, and edge cases. Ensure performance requirements are verified. Maintain test coverage for all new timer functionality including duration selection, auto-start, countdown display, automatic completion, and pause/resume features.</standards>
+    <locations>src/components/__tests__/TypingEngine.test.tsx - extend existing test suite with timer-specific tests</locations>
+    <ideas><test idea="Duration configuration test" ac="1">Test duration selection component renders 15, 30, 60, 120 second options and properly updates timer state"/></test><test idea="Auto-start functionality test" ac="2">Test timer begins on first character input and doesn't start on non-character keys"/></test><test idea="Countdown display test" ac="2">Test real-time countdown updates every second with proper MM:SS formatting"/></test><test idea="Automatic completion test" ac="3">Test session completes when timer expires and integrates with existing completeSession function"/></test><test idea="Pause/resume test" ac="4">Test pause/resume controls appear for sessions >60 seconds and preserve state during pause"/></test><test idea="Performance test" ac="1,2,3,4">Verify timer management doesn't impact <50ms typing latency requirement"/></test></ideas>
+  </tests>
+</story-context>

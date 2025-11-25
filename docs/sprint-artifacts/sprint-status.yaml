@@ -17,6 +17,7 @@ development_status:
   2-1-quote-mode-implementation: "ready-for-dev"
   2-2-word-character-modes: "ready-for-dev"
   2-3-lesson-mode-progression: "ready-for-dev"
+  2-4-code-mode-developers: "ready-for-dev"
   epic-3: "backlog"
   epic-4: "backlog"
   epic-5: "backlog"
@@ -36,6 +37,7 @@ epic_metadata:
       - "2-1-quote-mode-implementation: ready-for-dev"
       - "2-2-word-character-modes: ready-for-dev"
       - "2-3-lesson-mode-progression: ready-for-dev"
+      - "2-4-code-mode-developers: ready-for-dev"
   epic-3:
     title: "User Management & Authentication"
     description: "User authentication and profile management system"
@@ -55,4 +57,4 @@ epic_metadata:
 
 # Last Updated
 last_updated: "2025-11-25"
-updated_by: "bmad-workflow-story-context"
+updated_by: "bmad-workflow-create-story-context"

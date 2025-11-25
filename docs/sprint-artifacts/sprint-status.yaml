@@ -14,6 +14,7 @@ development_status:
   1-3-real-time-metrics: "done"
   1-4-timer-session-management: "done"
   epic-2: "backlog" 
+  2-1-quote-mode-implementation: "ready-for-dev"
   epic-3: "backlog"
   epic-4: "backlog"
   epic-5: "backlog"
@@ -29,6 +30,8 @@ epic_metadata:
     title: "Practice Modes Implementation" 
     description: "Diverse practice modes for varied learning experiences"
     stories_count: 5
+    stories:
+      - "2-1-quote-mode-implementation: ready-for-dev"
   epic-3:
     title: "User Management & Authentication"
     description: "User authentication and profile management system"

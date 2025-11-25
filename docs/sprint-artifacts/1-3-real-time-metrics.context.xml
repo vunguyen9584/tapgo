@@ -1,0 +1,171 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>Real-time Metrics Calculation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-24</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-3-real-time-metrics.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to see my typing speed and accuracy in real-time</iWant>
+    <soThat>I can monitor my performance during practice sessions</soThat>
+    <tasks>- [ ] Implement real-time WPM calculation system (AC: 1)
+  - [ ] Add WPM calculation logic: (typed_characters / 5) / minutes_elapsed
+  - [ ] Create 100ms update interval using useEffect and setInterval
+  - [ ] Update WPM state in real-time during typing
+  - [ ] Add WPM display component with real-time updates
+  - [ ] Ensure WPM calculation handles edge cases (early typing, pauses)
+
+- [ ] Implement accuracy percentage calculation (AC: 1)
+  - [ ] Add accuracy calculation: (correct_characters / total_characters) × 100
+  - [ ] Track correct vs incorrect character counts in state
+  - [ ] Update accuracy percentage in real-time
+  - [ ] Handle accuracy calculation for edge cases (zero characters)
+  - [ ] Add accuracy display component with visual indicators
+
+- [ ] Implement character-level statistics tracking (AC: 1)
+  - [ ] Add state variables for correctChars, incorrectChars, totalChars
+  - [ ] Update character counts on each keystroke
+  - [ ] Recalculate counts on backspace operations
+  - [ ] Track character-level errors for analysis
+  - [ ] Add character statistics display component
+
+- [ ] Implement net WPM calculation (AC: 2)
+  - [ ] Add net WPM formula accounting for errors
+  - [ ] Calculate net WPM: WPM - (error_penalty)
+  - [ ] Update net WPM in real-time during session
+  - [ ] Include net WPM in final session results
+
+- [ ] Implement session completion metrics (AC: 2)
+  - [ ] Calculate final metrics when session ends
+  - [ ] Display comprehensive results screen
+  - [ ] Store performance data to Firebase Firestore
+  - [ ] Include all metrics in session document
+  - [ ] Trigger completion callback with metrics data
+
+- [ ] Add comprehensive testing for metrics calculation (AC: 1, 2)
+  - [ ] Add tests for WPM calculation accuracy
+  - [ ] Add tests for accuracy percentage calculation
+  - [ ] Add tests for net WPM calculation
+  - [ ] Add tests for character statistics tracking
+  - [ ] Add tests for session completion metrics
+  - [ ] Verify performance requirements (100ms update frequency)
+
+- [ ] Integrate metrics with existing TypingEngine component (AC: 1, 2)
+  - [ ] Extend TypingEngine state with metrics variables
+  - [ ] Integrate metrics calculation into existing event handlers
+  - [ ] Add metrics display to existing TypingEngine UI
+  - [ ] Ensure compatibility with existing cursor and validation systems
+  - [ ] Maintain &lt;50ms typing latency performance requirement</tasks>
+  </story>
+
+  <acceptanceCriteria>1. Given I am actively typing, when I type characters, then WPM is calculated and displayed in real-time and accuracy percentage updates continuously and character-level statistics are tracked.
+
+2. Given a typing session ends, when the session completes, then final WPM, accuracy, and net WPM are calculated and correct vs incorrect character counts are displayed and performance data is stored for historical tracking.</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Basic Typing Engine Foundation</title>
+        <section>Metrics Calculation</section>
+        <snippet>Real-time WPM calculation: (typed_characters / 5) / minutes_elapsed. Accuracy calculation: (correct_characters / total_characters) × 100. Character-level statistics tracking (correct, incorrect, total). Performance data persistence to Firebase. 100ms update frequency for smooth real-time display.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Keyboard Master Brownfield Enhancement Architecture</title>
+        <section>Data Models and Schema Changes</section>
+        <snippet>TypingMetrics interface with wpm, accuracy, netWpm, correctChars, incorrectChars, totalChars. Component-based React architecture with unidirectional data flow. Firebase integration for session data persistence.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/1-2-special-characters-validation.md</path>
+        <title>Story 1.2: Special Characters and Input Validation</title>
+        <section>Dev Agent Record</section>
+        <snippet>Enhanced Component: TypingEngine component at src/components/TypingEngine.tsx - extend with metrics calculation logic in existing processCharacter and handleInputChange functions. State Management Pattern: React hooks with useState for typedText, cursorPosition, errorCount - add new state for real-time metrics.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/components/TypingEngine.tsx</path>
+        <kind>component</kind>
+        <symbol>TypingEngine</symbol>
+        <lines>1-200</lines>
+        <reason>Existing TypingEngine component to extend with metrics calculation logic in processCharacter and handleInputChange functions</reason>
+      </artifact>
+      <artifact>
+        <path>src/types/typing.ts</path>
+        <kind>interface</kind>
+        <symbol>TypingMetrics</symbol>
+        <lines>1-50</lines>
+        <reason>TypeScript interfaces to extend with TypingMetrics interface for real-time metrics (wpm, accuracy, netWpm, correctChars, incorrectChars, totalChars)</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/__tests__/TypingEngine.test.tsx</path>
+        <kind>test</kind>
+        <symbol>TypingEngine Tests</symbol>
+        <lines>1-100</lines>
+        <reason>Existing test suite to extend with metrics calculation testing following established patterns</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="react">
+        <package name="react" version="18.3.1" />
+        <package name="react-dom" version="18.3.1" />
+      </ecosystem>
+      <ecosystem name="typescript">
+        <package name="typescript" version="5.6.3" />
+      </ecosystem>
+      <ecosystem name="firebase">
+        <package name="firebase" version="10.14.1" />
+      </ecosystem>
+      <ecosystem name="testing">
+        <package name="jest" version="^29.0.0" />
+        <package name="@testing-library/react" version="^13.0.0" />
+        <package name="@testing-library/jest-dom" version="^5.0.0" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Maintain &lt;50ms typing latency performance requirement - ensure metrics calculations don't impact performance</constraint>
+    <constraint>100ms update frequency for smooth real-time display - use setInterval with proper cleanup</constraint>
+    <constraint>Extend existing React hooks patterns (useState, useEffect) for metrics state management</constraint>
+    <constraint>Follow established Firebase integration patterns for session data storage</constraint>
+    <constraint>Maintain compatibility with existing cursor animation and validation systems</constraint>
+    <constraint>Use TypeScript strict mode with comprehensive type safety for metrics calculations</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TypingMetrics</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface TypingMetrics {
+  wpm: number;
+  accuracy: number;
+  netWpm: number;
+  correctChars: number;
+  incorrectChars: number;
+  totalChars: number;
+}</signature>
+      <path>src/types/typing.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Test using Jest and React Testing Library following existing patterns in TypingEngine.test.tsx. Include unit tests for all calculation functions (WPM, accuracy, net WPM) and integration tests for real-time updates. Verify performance requirements with timing tests. Test edge cases (zero characters, early typing, pauses).</standards>
+    <locations>src/components/__tests__/TypingEngine.test.tsx</locations>
+    <ideas>
+      <test idea="Test WPM calculation accuracy with various typing speeds and durations" ac="1" />
+      <test idea="Test accuracy percentage calculation with correct/incorrect character combinations" ac="1" />
+      <test idea="Test real-time updates at 100ms intervals" ac="1" />
+      <test idea="Test character statistics tracking on keystrokes and backspace" ac="1" />
+      <test idea="Test net WPM calculation with error penalties" ac="2" />
+      <test idea="Test session completion metrics calculation and storage" ac="2" />
+      <test idea="Test performance to ensure &lt;50ms typing latency is maintained" ac="1,2" />
+    </ideas>
+  </tests>
+</story-context>
